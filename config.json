@@ -65,10 +65,10 @@
     "apply_to_app": true
   },
   "app": {
-    "api_base_url": "https://api.animekudesu.web.id",
+    "api_base_url": "https://api-mimo.neperone.id",
     "latest_version_code": 1,
     "latest_version_name": "v1.0.0",
-    "apk_download_url": "https://nyamimo.onrender.com",
+    "apk_download_url": "https://api-mimo.neperone.id",
     "force_update": false,
     "update_changelog": "- Streaming server lancar\n- Sinkronisasi riwayat nonton otomatis",
     "streaming_enabled": true,
