@@ -1,0 +1,98 @@
+{{define "search_results"}}
+<div class="p-4 space-y-4 bg-white text-[#1A1A1E]">
+    
+    {{if not .IsSearchQuery}}
+    <!-- Sejarah Pencarian (Search History Section) -->
+    <div id="search-history-wrapper" class="space-y-2">
+        <div class="flex items-center justify-between">
+            <h3 class="font-title font-bold text-sm text-[#1A1A1E]">Sejarah pencarian</h3>
+            <button 
+                type="button" 
+                onclick="clearSearchHistory()" 
+                id="btn-clear-history"
+                class="text-[#55555B] hover:text-red-600 text-xs font-semibold flex items-center gap-1 transition-colors hidden"
+                title="Hapus semua sejarah pencarian"
+            >
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Hapus
+            </button>
+        </div>
+        <div id="search-history-chips" class="flex flex-wrap gap-2 pt-0.5">
+            <!-- Dynamically rendered via JS renderSearchHistory() -->
+        </div>
+    </div>
+    {{end}}
+
+    <!-- Section Title Header -->
+    <div class="flex items-center justify-between border-t border-[#E2E2DC] pt-3">
+        <h3 class="font-title font-bold text-sm text-[#1A1A1E]">{{.TitleHeader}}</h3>
+        {{if not .IsSearchQuery}}
+        <span class="text-[10px] font-extrabold px-2 py-0.5 rounded bg-[#FFCC00] text-[#17171B] font-title shadow-sm">NYAMIMO TRENDING</span>
+        {{end}}
+    </div>
+
+    <!-- Anime Items Grid / List -->
+    {{if .Results}}
+        {{if not .IsSearchQuery}}
+        <!-- 2-Column Grid matching Bstation Design -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+            {{range .Results}}
+            <a href="/anime/{{.Slug}}" onclick="SearchHistory.add('{{.Title}}')" class="flex items-center gap-3 p-2 rounded-xl hover:bg-[#F6F5F0] transition-colors border border-transparent hover:border-[#E2E2DC] group min-w-0">
+                <img src="{{.Img}}" alt="{{.Title}}" class="w-12 h-16 object-cover rounded-lg flex-shrink-0 bg-[#F6F5F0] border border-[#E2E2DC] shadow-sm group-hover:scale-105 transition-transform" loading="lazy" />
+                <div class="flex-grow min-w-0 space-y-0.5">
+                    <h4 class="text-xs font-bold font-title text-[#1A1A1E] truncate group-hover:text-[#FFCC00] transition-colors" title="{{.Title}}">{{.Title}}</h4>
+                    <div class="text-[10px] text-[#55555B] font-medium truncate">
+                        <span>{{if .Type}}{{.Type}}{{else}}Anime{{end}}</span>
+                        {{if .Released}}<span> | {{.Released}}</span>{{end}}
+                    </div>
+                    <div class="flex items-center gap-1.5 text-[10px] font-semibold text-[#55555B]">
+                        {{if .Score}}
+                        <span class="text-[#1A1A1E] font-bold font-title flex items-center gap-0.5">
+                            ★ {{.Score}}
+                        </span>
+                        {{end}}
+                        {{if .Episode}}<span class="text-amber-600 font-bold">• {{.Episode}}</span>{{end}}
+                    </div>
+                </div>
+            </a>
+            {{end}}
+        </div>
+        {{else}}
+        <!-- Single List View for Active Search Results -->
+        <div class="divide-y divide-[#E2E2DC]">
+            {{range .Results}}
+            <a href="/anime/{{.Slug}}" onclick="SearchHistory.add('{{.Title}}')" class="flex items-center gap-3.5 p-2.5 hover:bg-[#F6F5F0] rounded-xl transition-colors group">
+                <img src="{{.Img}}" alt="{{.Title}}" class="w-11 h-14 object-cover rounded-lg flex-shrink-0 bg-[#F6F5F0] border border-[#E2E2DC] shadow-sm group-hover:scale-105 transition-transform" loading="lazy" />
+                <div class="flex-grow min-w-0">
+                    <h4 class="text-xs sm:text-sm font-bold font-title text-[#1A1A1E] truncate group-hover:text-[#FFCC00] transition-colors">{{.Title}}</h4>
+                    <div class="flex items-center gap-2 text-[11px] text-[#55555B] mt-1 font-semibold flex-wrap">
+                        <span class="px-1.5 py-0.5 rounded bg-[#F6F5F0] border border-[#E2E2DC] text-[#1A1A1E] text-[10px] font-bold">{{if .Type}}{{.Type}}{{else}}Anime{{end}}</span>
+                        {{if .SeasonBadge}}
+                        <span class="px-1.5 py-0.5 rounded bg-[#FFCC00]/20 border border-[#FFCC00] text-[#1A1A1E] text-[10px] font-extrabold shadow-sm font-title">{{.SeasonBadge}}</span>
+                        {{end}}
+                        {{if .Score}}
+                        <span class="text-[#1A1A1E] font-bold flex items-center gap-0.5 font-title">
+                            ★ {{.Score}}
+                        </span>
+                        {{end}}
+                        <span>•</span>
+                        <span>{{.Episode}}</span>
+                    </div>
+                </div>
+            </a>
+            {{end}}
+        </div>
+        {{end}}
+    {{else}}
+    <div class="p-4 text-center text-xs text-[#55555B] font-title">
+        Tidak ada anime yang cocok ditemukan.
+    </div>
+    {{end}}
+
+</div>
+
+<script>
+    if (typeof renderSearchHistory === 'function') {
+        renderSearchHistory();
+    }
+</script>
+{{end}}

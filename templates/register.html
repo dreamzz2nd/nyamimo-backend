@@ -1,0 +1,105 @@
+{{define "content"}}
+<div class="min-h-[75vh] flex items-center justify-center px-4 py-12">
+    <!-- Register Card Box -->
+    <div class="w-full max-w-md bg-white border border-[#E2E2DC] rounded-3xl p-6 sm:p-10 shadow-xl space-y-6 relative overflow-hidden">
+        
+        <!-- Decorative Top Accent Line -->
+        <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#FFCC00] via-[#17171B] to-[#FFCC00]"></div>
+
+        <!-- Header Section with Nyamimo Logo -->
+        <div class="text-center space-y-3 pt-2">
+            <div class="w-16 h-16 rounded-2xl bg-[#F6F5F0] border border-[#E2E2DC] p-2 flex items-center justify-center mx-auto shadow-sm relative group">
+                <img src="/static/logo.png" alt="Nyamimo Logo" class="w-full h-full object-contain filter drop-shadow group-hover:scale-105 transition-transform" />
+            </div>
+            <div class="space-y-1">
+                <h1 class="text-2xl font-extrabold font-title text-[#1A1A1E] tracking-tight">Daftar Member Nyamimo</h1>
+                <p class="text-xs text-[#55555B]">Buat akun baru gratis untuk menikmati anime HD.</p>
+            </div>
+        </div>
+
+        {{if .ErrorMessage}}
+        <div class="bg-red-50 border border-red-200 text-red-700 p-3.5 rounded-2xl text-xs font-bold flex items-center gap-2.5 shadow-sm">
+            <i data-lucide="alert-circle" class="w-4 h-4 text-red-500 shrink-0"></i>
+            <span>{{.ErrorMessage}}</span>
+        </div>
+        {{end}}
+
+        <!-- Form Section -->
+        <form action="/api/register" method="POST" class="space-y-4 text-xs font-semibold">
+            <!-- Full Name Input Group -->
+            <div class="space-y-1.5">
+                <label class="text-[#1A1A1E] font-bold block">Nama Lengkap</label>
+                <div class="relative flex items-center">
+                    <span class="absolute left-3.5 text-[#A0A0A8]">
+                        <i data-lucide="user-check" class="w-4 h-4"></i>
+                    </span>
+                    <input 
+                        type="text" 
+                        name="name" 
+                        required 
+                        placeholder="Nama Lengkap Kamu" 
+                        class="w-full bg-[#F6F5F0] border border-[#E2E2DC] focus:border-[#FFCC00] focus:bg-white rounded-xl pl-10 pr-4 py-3 text-[#1A1A1E] text-xs font-medium outline-none transition-all" 
+                    />
+                </div>
+            </div>
+
+            <!-- Username Input Group -->
+            <div class="space-y-1.5">
+                <label class="text-[#1A1A1E] font-bold block">Username</label>
+                <div class="relative flex items-center">
+                    <span class="absolute left-3.5 text-[#A0A0A8]">
+                        <i data-lucide="user" class="w-4 h-4"></i>
+                    </span>
+                    <input 
+                        type="text" 
+                        name="username" 
+                        required 
+                        placeholder="Pilih username unik kamu" 
+                        class="w-full bg-[#F6F5F0] border border-[#E2E2DC] focus:border-[#FFCC00] focus:bg-white rounded-xl pl-10 pr-4 py-3 text-[#1A1A1E] text-xs font-medium outline-none transition-all" 
+                    />
+                </div>
+            </div>
+
+            <!-- Password Input Group -->
+            <div class="space-y-1.5">
+                <label class="text-[#1A1A1E] font-bold block">Kata Sandi (Password)</label>
+                <div class="relative flex items-center" x-data="{ showPass: false }">
+                    <span class="absolute left-3.5 text-[#A0A0A8]">
+                        <i data-lucide="lock" class="w-4 h-4"></i>
+                    </span>
+                    <input 
+                        :type="showPass ? 'text' : 'password'" 
+                        name="password" 
+                        required 
+                        placeholder="Buat kata sandi minimal 6 karakter" 
+                        class="w-full bg-[#F6F5F0] border border-[#E2E2DC] focus:border-[#FFCC00] focus:bg-white rounded-xl pl-10 pr-10 py-3 text-[#1A1A1E] text-xs font-medium outline-none transition-all" 
+                    />
+                    <button 
+                        type="button" 
+                        @click="showPass = !showPass" 
+                        class="absolute right-3.5 text-[#A0A0A8] hover:text-[#17171B] transition-colors"
+                        title="Tampilkan / Sembunyikan Kata Sandi"
+                    >
+                        <i x-show="!showPass" data-lucide="eye" class="w-4 h-4"></i>
+                        <i x-show="showPass" data-lucide="eye-off" class="w-4 h-4" style="display: none;"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="w-full py-3.5 rounded-xl bg-[#17171B] hover:bg-[#FFCC00] text-[#FFCC00] hover:text-[#17171B] font-bold font-title text-sm transition-all flex items-center justify-center gap-2 shadow-md group">
+                <i data-lucide="user-plus" class="w-4 h-4 group-hover:scale-110 transition-transform"></i> 
+                <span>Buat Akun Member</span>
+            </button>
+        </form>
+
+        <!-- Footer Login Link -->
+        <div class="text-center text-xs text-[#55555B] border-t border-[#E2E2DC] pt-5">
+            Sudah memiliki akun Nyamimo? <a href="/login" class="text-[#17171B] font-extrabold underline hover:text-[#FFCC00] transition-colors">Masuk di Sini</a>
+        </div>
+    </div>
+</div>
+<script>
+    if (window.lucide) lucide.createIcons();
+</script>
+{{end}}

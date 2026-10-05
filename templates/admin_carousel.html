@@ -1,0 +1,461 @@
+{{define "content"}}
+<div class="max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8" x-data="{
+    editModalOpen: false,
+    editSlide: {
+        orig_slug: '',
+        title: '',
+        slug: '',
+        img: '',
+        episode: '',
+        score: '',
+        type: ''
+    },
+    openEditModal(anime) {
+        this.editSlide = {
+            orig_slug: anime.slug,
+            title: anime.title,
+            slug: anime.slug,
+            img: anime.img,
+            episode: anime.episode || '',
+            score: anime.score || '',
+            type: anime.type || ''
+        };
+        this.editModalOpen = true;
+        this.$nextTick(() => {
+            updatePreview(this.editSlide.img, 'edit');
+            lucide.createIcons();
+        });
+    },
+    closeEditModal() {
+        this.editModalOpen = false;
+    }
+}">
+    
+    <!-- Admin Header Banner -->
+    <div class="bg-white border border-[#E2E2DC] rounded-3xl p-6 sm:p-8 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden">
+        <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#FFCC00] via-[#17171B] to-[#FFCC00]"></div>
+
+        <div class="space-y-2">
+            <div class="flex items-center gap-2">
+                <a href="/admin" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-[#17171B] text-[#FFCC00] font-extrabold text-xs uppercase tracking-wider font-title hover:bg-[#212126] transition-colors">
+                    <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Dashboard Admin
+                </a>
+                <span class="text-xs text-[#55555B] font-semibold">• Hero Carousel Manager</span>
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold font-title text-[#1A1A1E] tracking-tight">
+                Pengaturan Hero Carousel Banner
+            </h1>
+            <p class="text-xs sm:text-sm text-[#55555B] leading-relaxed max-w-2xl">
+                Kelola anime unggulan yang tampil pada Hero Showcase Carousel di halaman Beranda. Kamu bisa mengedit tiap slide anime, mengubah urutan (Naik/Turun), menambah banner kustom dengan Wallpaper HD otomatis, atau menghapus slide.
+            </p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3 shrink-0">
+            <form action="/api/admin/carousel/reset" method="POST" onsubmit="return confirm('Apakah kamu yakin ingin mengembalikan carousel ke daftar default?');">
+                <button type="submit" class="px-5 py-2.5 rounded-xl bg-[#F6F5F0] hover:bg-[#E2E2DC] text-[#1A1A1E] font-bold text-xs border border-[#E2E2DC] transition-colors flex items-center gap-2 font-title cursor-pointer shadow-sm">
+                    <i data-lucide="rotate-ccw" class="w-4 h-4 text-[#55555B]"></i> Reset ke Default
+                </button>
+            </form>
+            <a href="/" class="px-5 py-2.5 rounded-xl bg-[#FFCC00] hover:bg-[#e6b800] text-[#17171B] font-bold text-xs transition-colors flex items-center gap-2 shadow-sm font-title">
+                <i data-lucide="eye" class="w-4 h-4"></i> Lihat di Beranda
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Grid: Form Add + List Carousel Items -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        
+        <!-- Left Column: Form Tambah Carousel Anime Baru (4/5 Cols) -->
+        <div class="lg:col-span-5 xl:col-span-4 bg-white border border-[#E2E2DC] rounded-3xl p-6 sm:p-7 shadow-sm space-y-6">
+            <div class="border-b border-[#E2E2DC] pb-4 space-y-1">
+                <h3 class="font-title font-bold text-base text-[#1A1A1E] flex items-center gap-2">
+                    <i data-lucide="plus-circle" class="w-5 h-5 text-[#FFCC00]"></i> Tambah Anime ke Carousel
+                </h3>
+                <p class="text-xs text-[#55555B]">Isi formulir di bawah untuk menambahkan slide banner baru.</p>
+            </div>
+
+            <form action="/api/admin/carousel/add" method="POST" class="space-y-4 text-xs font-semibold">
+                <div class="space-y-1.5">
+                    <div class="flex items-center justify-between gap-2">
+                        <label class="text-[#1A1A1E] font-bold">Judul Anime <span class="text-red-500">*</span></label>
+                        <button 
+                            type="button" 
+                            onclick="searchWallpaperFor('input-title', 'wallpaper-results', 'search-loading', 'input-img', 'image-preview', 'img-preview-tag')"
+                            class="px-2.5 py-1 rounded-lg bg-[#FFCC00] hover:bg-[#e6b800] text-[#17171B] font-extrabold text-[11px] flex items-center gap-1 transition-colors shadow-sm font-title cursor-pointer"
+                            title="Otomatis cari wallpaper landscape HD resmi dari AniList, Wallhaven & WallpaperCat"
+                        >
+                            <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Cari Wallpaper HD
+                        </button>
+                    </div>
+                    <input 
+                        type="text" 
+                        id="input-title" 
+                        name="title" 
+                        required 
+                        placeholder="Contoh: Mushoku Tensei Season 3" 
+                        class="w-full bg-[#F6F5F0] border border-[#E2E2DC] focus:border-[#FFCC00] rounded-xl px-3.5 py-2.5 text-[#1A1A1E] text-xs outline-none transition-colors" 
+                        oninput="autoFillSlug(this.value, 'input-slug')"
+                    />
+                </div>
+
+                <!-- Wallpaper Search Loading & Results Container -->
+                <div id="search-loading" class="hidden text-xs text-[#55555B] font-semibold items-center gap-2 py-1">
+                    <i data-lucide="loader-2" class="w-4 h-4 animate-spin text-[#FFCC00]"></i> Mencari wallpaper HD terbaik...
+                </div>
+                <div id="wallpaper-results"></div>
+
+                <div class="space-y-1.5">
+                    <label class="text-[#1A1A1E] font-bold">Slug URL Anime <span class="text-red-500">*</span></label>
+                    <input 
+                        type="text" 
+                        id="input-slug" 
+                        name="slug" 
+                        required 
+                        placeholder="Contoh: mushoku-tensei-s3" 
+                        class="w-full bg-[#F6F5F0] border border-[#E2E2DC] focus:border-[#FFCC00] rounded-xl px-3.5 py-2.5 text-[#1A1A1E] text-xs outline-none transition-colors" 
+                    />
+                </div>
+
+                <div class="space-y-1.5">
+                    <div class="flex items-center justify-between">
+                        <label class="text-[#1A1A1E] font-bold">URL Gambar (Landscape Poster HD) <span class="text-red-500">*</span></label>
+                        <span class="text-[10px] text-[#55555B]">Ketik manual / klik dari pencarian</span>
+                    </div>
+                    <input 
+                        type="url" 
+                        id="input-img" 
+                        name="img" 
+                        required 
+                        placeholder="https://..." 
+                        class="w-full bg-[#F6F5F0] border border-[#E2E2DC] focus:border-[#FFCC00] rounded-xl px-3.5 py-2.5 text-[#1A1A1E] text-xs outline-none transition-colors"
+                        oninput="updatePreview(this.value, 'add')"
+                    />
+                    <!-- Live Preview Box -->
+                    <div id="image-preview" class="hidden space-y-1 pt-1">
+                        <span class="text-[11px] font-bold text-[#55555B]">Preview Landscape HD:</span>
+                        <div class="w-full h-32 rounded-xl overflow-hidden border border-[#FFCC00] bg-black shadow-inner">
+                            <img id="img-preview-tag" src="" class="w-full h-full object-cover" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="space-y-1.5">
+                        <label class="text-[#1A1A1E] font-bold">Status Episode</label>
+                        <input type="text" name="episode" placeholder="Episode 14" class="w-full bg-[#F6F5F0] border border-[#E2E2DC] focus:border-[#FFCC00] rounded-xl px-3.5 py-2.5 text-[#1A1A1E] text-xs outline-none transition-colors" />
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[#1A1A1E] font-bold">Rating Score</label>
+                        <input type="text" name="score" placeholder="8.9" class="w-full bg-[#F6F5F0] border border-[#E2E2DC] focus:border-[#FFCC00] rounded-xl px-3.5 py-2.5 text-[#1A1A1E] text-xs outline-none transition-colors" />
+                    </div>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="text-[#1A1A1E] font-bold">Tipe Anime</label>
+                    <input type="text" name="type" placeholder="TV Series / Movie" class="w-full bg-[#F6F5F0] border border-[#E2E2DC] focus:border-[#FFCC00] rounded-xl px-3.5 py-2.5 text-[#1A1A1E] text-xs outline-none transition-colors" />
+                </div>
+
+                <button type="submit" class="w-full py-3 rounded-xl bg-[#17171B] hover:bg-[#212126] text-[#FFCC00] font-bold font-title text-xs transition-all flex items-center justify-center gap-2 shadow cursor-pointer active:scale-[0.98]">
+                    <i data-lucide="check" class="w-4 h-4"></i> Simpan Anime ke Carousel
+                </button>
+            </form>
+        </div>
+
+        <!-- Right Column: Daftar Slide Carousel Aktif (7/8 Cols) -->
+        <div class="lg:col-span-7 xl:col-span-8 bg-white border border-[#E2E2DC] rounded-3xl p-6 sm:p-7 shadow-sm space-y-6">
+            <div class="flex items-center justify-between border-b border-[#E2E2DC] pb-4">
+                <div>
+                    <h3 class="font-title font-bold text-base text-[#1A1A1E]">Daftar Carousel Aktif Saat Ini</h3>
+                    <p class="text-xs text-[#55555B]">Total <strong>{{len .HeroAnime}}</strong> anime aktif tampil di Hero Showcase Carousel beranda</p>
+                </div>
+            </div>
+
+            <div class="grid gap-3.5">
+                {{range $idx, $anime := .HeroAnime}}
+                <div class="bg-[#F6F5F0] hover:bg-[#F0EFEA] border border-[#E2E2DC] hover:border-[#FFCC00] rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 transition-all group">
+                    <div class="flex items-center gap-4 min-w-0 w-full sm:w-auto">
+                        <!-- Thumbnail -->
+                        <div class="w-20 h-24 rounded-xl overflow-hidden border border-[#E2E2DC] shrink-0 bg-black shadow-sm relative group/img">
+                            <img src="{{$anime.Img}}" alt="{{$anime.Title}}" class="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                            <span class="absolute top-1 left-1 bg-[#17171B]/90 text-[#FFCC00] font-extrabold text-[9px] px-1.5 py-0.5 rounded shadow">
+                                #{{add $idx 1}}
+                            </span>
+                        </div>
+
+                        <!-- Details -->
+                        <div class="space-y-1.5 min-w-0">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="bg-[#FFCC00] text-[#17171B] font-extrabold text-[10px] px-2 py-0.5 rounded font-title">
+                                    Slide #{{add $idx 1}}
+                                </span>
+                                <span class="text-[11px] font-mono text-[#55555B] truncate max-w-[200px]">/anime/{{$anime.Slug}}</span>
+                            </div>
+                            <h4 class="font-title font-extrabold text-sm sm:text-base text-[#1A1A1E] truncate">{{$anime.Title}}</h4>
+                            <div class="text-xs text-[#55555B] flex items-center gap-2 font-semibold">
+                                <span class="px-2 py-0.5 rounded bg-white border border-[#E2E2DC] text-[11px]">
+                                    {{if $anime.Type}}{{$anime.Type}}{{else}}TV Series{{end}}
+                                </span>
+                                <span>•</span>
+                                <span>{{if $anime.Episode}}{{$anime.Episode}}{{else}}Ep Lengkap{{end}}</span>
+                                <span>•</span>
+                                <span class="text-amber-600 font-bold flex items-center gap-0.5">★ {{if $anime.Score}}{{$anime.Score}}{{else}}8.5{{end}}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Controls (Reorder, Edit, Delete) -->
+                    <div class="flex items-center gap-1.5 shrink-0 w-full sm:w-auto justify-end border-t sm:border-t-0 pt-2 sm:pt-0 border-[#E2E2DC]">
+                        <!-- Move Up Button -->
+                        <form action="/api/admin/carousel/move" method="POST">
+                            <input type="hidden" name="slug" value="{{$anime.Slug}}" />
+                            <input type="hidden" name="dir" value="up" />
+                            <button 
+                                type="submit" 
+                                {{if eq $idx 0}}disabled class="p-2 rounded-xl bg-gray-100 text-gray-300 border border-gray-200 cursor-not-allowed"{{else}}class="p-2 rounded-xl bg-white hover:bg-[#E2E2DC] text-[#1A1A1E] border border-[#E2E2DC] font-bold text-xs transition-colors shadow-sm cursor-pointer active:scale-95"{{end}}
+                                title="Pindahkan ke atas"
+                            >
+                                <i data-lucide="chevron-up" class="w-4 h-4"></i>
+                            </button>
+                        </form>
+
+                        <!-- Move Down Button -->
+                        <form action="/api/admin/carousel/move" method="POST">
+                            <input type="hidden" name="slug" value="{{$anime.Slug}}" />
+                            <input type="hidden" name="dir" value="down" />
+                            <button 
+                                type="submit" 
+                                {{if eq (add $idx 1) (len $.HeroAnime)}}disabled class="p-2 rounded-xl bg-gray-100 text-gray-300 border border-gray-200 cursor-not-allowed"{{else}}class="p-2 rounded-xl bg-white hover:bg-[#E2E2DC] text-[#1A1A1E] border border-[#E2E2DC] font-bold text-xs transition-colors shadow-sm cursor-pointer active:scale-95"{{end}}
+                                title="Pindahkan ke bawah"
+                            >
+                                <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                            </button>
+                        </form>
+
+                        <!-- Edit Button -->
+                        <button 
+                            type="button" 
+                            @click="openEditModal({
+                                slug: '{{$anime.Slug}}',
+                                title: '{{$anime.Title}}',
+                                img: '{{$anime.Img}}',
+                                episode: '{{$anime.Episode}}',
+                                score: '{{$anime.Score}}',
+                                type: '{{$anime.Type}}'
+                            })"
+                            class="px-3 py-2 rounded-xl bg-[#17171B] hover:bg-[#212126] text-[#FFCC00] font-bold text-xs transition-colors flex items-center gap-1.5 font-title shadow-sm cursor-pointer active:scale-95"
+                            title="Edit Slide Ini"
+                        >
+                            <i data-lucide="edit-3" class="w-3.5 h-3.5"></i> Edit
+                        </button>
+
+                        <!-- Delete Button -->
+                        <form action="/api/admin/carousel/delete" method="POST" onsubmit="return confirm('Hapus slide anime {{$anime.Title}} dari carousel?');">
+                            <input type="hidden" name="slug" value="{{$anime.Slug}}" />
+                            <button type="submit" class="px-3 py-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 font-bold text-xs transition-colors flex items-center gap-1.5 font-title cursor-pointer active:scale-95" title="Hapus Slide">
+                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Hapus
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {{end}}
+            </div>
+        </div>
+
+    </div>
+
+    <!-- MODAL EDIT CAROUSEL SLIDE -->
+    <div 
+        x-show="editModalOpen" 
+        x-cloak
+        class="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+    >
+        <div 
+            @click.outside="closeEditModal()" 
+            class="bg-white border border-[#E2E2DC] rounded-3xl p-6 sm:p-8 max-w-xl w-full shadow-2xl space-y-6 relative animate-fade-in"
+        >
+            <div class="flex items-center justify-between border-b border-[#E2E2DC] pb-4">
+                <div class="space-y-1">
+                    <span class="px-2.5 py-0.5 rounded bg-[#FFCC00] text-[#17171B] font-extrabold text-[10px] font-title uppercase">
+                        Edit Slide Carousel
+                    </span>
+                    <h3 class="font-title font-extrabold text-lg sm:text-xl text-[#1A1A1E]">
+                        Edit Data Anime Banner
+                    </h3>
+                </div>
+                <button @click="closeEditModal()" class="p-2 rounded-xl bg-[#F6F5F0] hover:bg-[#E2E2DC] text-[#55555B] hover:text-[#1A1A1E] transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <form action="/api/admin/carousel/edit" method="POST" class="space-y-4 text-xs font-semibold">
+                <input type="hidden" name="orig_slug" :value="editSlide.orig_slug" />
+
+                <div class="space-y-1.5">
+                    <div class="flex items-center justify-between gap-2">
+                        <label class="text-[#1A1A1E] font-bold">Judul Anime <span class="text-red-500">*</span></label>
+                        <button 
+                            type="button" 
+                            onclick="searchWallpaperFor('edit-input-title', 'edit-wallpaper-results', 'edit-search-loading', 'edit-input-img', 'edit-image-preview', 'edit-img-preview-tag')"
+                            class="px-2.5 py-1 rounded-lg bg-[#FFCC00] hover:bg-[#e6b800] text-[#17171B] font-extrabold text-[11px] flex items-center gap-1 transition-colors shadow-sm font-title cursor-pointer"
+                        >
+                            <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Cari Wallpaper HD
+                        </button>
+                    </div>
+                    <input 
+                        type="text" 
+                        id="edit-input-title" 
+                        name="title" 
+                        x-model="editSlide.title" 
+                        required 
+                        class="w-full bg-[#F6F5F0] border border-[#E2E2DC] focus:border-[#FFCC00] rounded-xl px-3.5 py-2.5 text-[#1A1A1E] text-xs outline-none transition-colors" 
+                        oninput="autoFillSlug(this.value, 'edit-input-slug')"
+                    />
+                </div>
+
+                <!-- Edit Wallpaper Search Loading & Results Container -->
+                <div id="edit-search-loading" class="hidden text-xs text-[#55555B] font-semibold items-center gap-2 py-1">
+                    <i data-lucide="loader-2" class="w-4 h-4 animate-spin text-[#FFCC00]"></i> Mencari wallpaper HD terbaik...
+                </div>
+                <div id="edit-wallpaper-results"></div>
+
+                <div class="space-y-1.5">
+                    <label class="text-[#1A1A1E] font-bold">Slug URL Anime <span class="text-red-500">*</span></label>
+                    <input 
+                        type="text" 
+                        id="edit-input-slug" 
+                        name="slug" 
+                        x-model="editSlide.slug" 
+                        required 
+                        class="w-full bg-[#F6F5F0] border border-[#E2E2DC] focus:border-[#FFCC00] rounded-xl px-3.5 py-2.5 text-[#1A1A1E] text-xs outline-none transition-colors" 
+                    />
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="text-[#1A1A1E] font-bold">URL Gambar (Landscape Poster HD) <span class="text-red-500">*</span></label>
+                    <input 
+                        type="url" 
+                        id="edit-input-img" 
+                        name="img" 
+                        x-model="editSlide.img" 
+                        required 
+                        class="w-full bg-[#F6F5F0] border border-[#E2E2DC] focus:border-[#FFCC00] rounded-xl px-3.5 py-2.5 text-[#1A1A1E] text-xs outline-none transition-colors"
+                        oninput="updatePreview(this.value, 'edit')"
+                    />
+                    <!-- Live Preview Box in Modal -->
+                    <div id="edit-image-preview" class="space-y-1 pt-1">
+                        <span class="text-[11px] font-bold text-[#55555B]">Preview Landscape HD:</span>
+                        <div class="w-full h-32 rounded-xl overflow-hidden border border-[#FFCC00] bg-black shadow-inner">
+                            <img id="edit-img-preview-tag" :src="editSlide.img" class="w-full h-full object-cover" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="space-y-1.5">
+                        <label class="text-[#1A1A1E] font-bold">Status Episode</label>
+                        <input type="text" name="episode" x-model="editSlide.episode" placeholder="Episode 14" class="w-full bg-[#F6F5F0] border border-[#E2E2DC] focus:border-[#FFCC00] rounded-xl px-3.5 py-2.5 text-[#1A1A1E] text-xs outline-none transition-colors" />
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[#1A1A1E] font-bold">Rating Score</label>
+                        <input type="text" name="score" x-model="editSlide.score" placeholder="8.9" class="w-full bg-[#F6F5F0] border border-[#E2E2DC] focus:border-[#FFCC00] rounded-xl px-3.5 py-2.5 text-[#1A1A1E] text-xs outline-none transition-colors" />
+                    </div>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="text-[#1A1A1E] font-bold">Tipe Anime</label>
+                    <input type="text" name="type" x-model="editSlide.type" placeholder="TV Series / Movie" class="w-full bg-[#F6F5F0] border border-[#E2E2DC] focus:border-[#FFCC00] rounded-xl px-3.5 py-2.5 text-[#1A1A1E] text-xs outline-none transition-colors" />
+                </div>
+
+                <div class="flex items-center gap-3 pt-2">
+                    <button type="button" @click="closeEditModal()" class="w-1/2 py-3 rounded-xl bg-[#F6F5F0] hover:bg-[#E2E2DC] text-[#1A1A1E] font-bold font-title text-xs transition-colors text-center cursor-pointer">
+                        Batal
+                    </button>
+                    <button type="submit" class="w-1/2 py-3 rounded-xl bg-[#17171B] hover:bg-[#212126] text-[#FFCC00] font-bold font-title text-xs transition-colors flex items-center justify-center gap-2 shadow cursor-pointer">
+                        <i data-lucide="save" class="w-4 h-4"></i> Simpan Perubahan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>
+
+<!-- Universal Wallpaper Search & Image Helper Scripts -->
+<script>
+    function selectWallpaper(url, targetInputId) {
+        if (!targetInputId) targetInputId = 'input-img';
+        const imgInput = document.getElementById(targetInputId);
+        if (imgInput) {
+            imgInput.value = url;
+            // dispatch input event for alpine.js binding
+            imgInput.dispatchEvent(new Event('input', { bubbles: true }));
+            if (targetInputId.includes('edit')) {
+                updatePreview(url, 'edit');
+            } else {
+                updatePreview(url, 'add');
+            }
+        }
+    }
+
+    function updatePreview(url, context) {
+        const prefix = (context === 'edit') ? 'edit-' : '';
+        const previewContainer = document.getElementById(prefix + 'image-preview');
+        const previewTag = document.getElementById(prefix + 'img-preview-tag');
+        if (previewContainer && previewTag) {
+            if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
+                previewTag.src = url;
+                previewContainer.classList.remove('hidden');
+            } else {
+                if (context !== 'edit') {
+                    previewContainer.classList.add('hidden');
+                }
+            }
+        }
+    }
+
+    function autoFillSlug(title, targetSlugId) {
+        if (!targetSlugId) targetSlugId = 'input-slug';
+        const slugInput = document.getElementById(targetSlugId);
+        if (slugInput) {
+            const slug = title.toLowerCase()
+                .replace(/[^a-z0-9\s-]/g, '')
+                .trim()
+                .replace(/\s+/g, '-');
+            slugInput.value = slug;
+            slugInput.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+    }
+
+    async function searchWallpaperFor(titleInputId, resultsContainerId, loaderId, targetInputId, previewContainerId, previewTagId) {
+        const titleInput = document.getElementById(titleInputId);
+        const resultsContainer = document.getElementById(resultsContainerId);
+        const loader = document.getElementById(loaderId);
+        
+        const titleVal = titleInput ? titleInput.value.trim() : '';
+        if (!titleVal) {
+            alert('Silakan masukkan Judul Anime terlebih dahulu untuk mencari wallpaper HD!');
+            if (titleInput) titleInput.focus();
+            return;
+        }
+
+        if (loader) loader.classList.remove('hidden');
+        if (resultsContainer) resultsContainer.innerHTML = '';
+
+        try {
+            const resp = await fetch(`/api/admin/wallpaper-search?q=${encodeURIComponent(titleVal)}&target=${encodeURIComponent(targetInputId)}`);
+            if (!resp.ok) throw new Error('Gagal memuat wallpaper');
+            const html = await resp.text();
+            if (resultsContainer) {
+                resultsContainer.innerHTML = html;
+                lucide.createIcons();
+            }
+        } catch (err) {
+            if (resultsContainer) {
+                resultsContainer.innerHTML = `<div class="p-3 bg-red-50 text-red-600 rounded-xl text-xs font-semibold">Gagal memuat gambar: ${err.message}</div>`;
+            }
+        } finally {
+            if (loader) loader.classList.add('hidden');
+        }
+    }
+</script>
+{{end}}

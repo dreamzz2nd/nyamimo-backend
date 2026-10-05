@@ -1,0 +1,209 @@
+{{define "content"}}
+<div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+    x-data="{ view: 'options' }">
+    <!-- Popup Login Box (Bstation Style) -->
+    <div
+        class="w-full max-w-md bg-white rounded-3xl p-6 sm:p-8 shadow-2xl relative space-y-6 animate-in fade-in zoom-in duration-200">
+
+        <!-- Close Button -->
+        <a href="/"
+            class="absolute top-5 right-5 w-8 h-8 rounded-full bg-[#F6F5F0] hover:bg-[#E2E2DC] flex items-center justify-center text-[#55555B] hover:text-[#1A1A1E] transition-colors"
+            title="Tutup">
+            <i data-lucide="x" class="w-4 h-4"></i>
+        </a>
+
+        <!-- Header Title & Logo -->
+        <div class="text-center space-y-2 pt-2">
+            <div
+                class="w-14 h-14 rounded-2xl bg-[#F6F5F0] border border-[#E2E2DC] p-2 flex items-center justify-center mx-auto shadow-sm">
+                <img src="/static/logo.png" alt="Nyamimo Logo" class="w-full h-full object-contain" />
+            </div>
+            <h1 class="text-2xl font-extrabold font-title text-[#1A1A1E] tracking-tight"
+                x-text="view === 'register' ? 'Daftar Member Nyamimo' : 'Login Nyamimo'">Login Nyamimo</h1>
+            <p x-show="view === 'register'" class="text-xs text-[#55555B]">Buat akun baru gratis untuk menikmati anime HD.</p>
+        </div>
+
+        {{if .ErrorMessage}}
+        <div
+            class="bg-red-50 border border-red-200 text-red-700 p-3.5 rounded-2xl text-xs font-bold flex items-center gap-2.5 shadow-sm">
+            <i data-lucide="alert-circle" class="w-4 h-4 text-red-500 shrink-0"></i>
+            <span>{{.ErrorMessage}}</span>
+        </div>
+        {{end}}
+
+        <!-- View 1: 2 Login Options (Google & Akun Nyamimo) -->
+        <div x-show="view === 'options'" class="space-y-3 py-2">
+            <!-- Option 1: Login dengan Google -->
+            <a href="/api/google-login"
+                class="w-full py-3.5 px-4 rounded-xl border border-[#E2E2DC] hover:border-[#FFCC00] hover:bg-[#F6F5F0] text-[#1A1A1E] font-bold font-title text-sm flex items-center justify-center gap-3 transition-all shadow-sm group">
+                <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24">
+                    <path fill="#4285F4"
+                        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                    <path fill="#34A853"
+                        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                    <path fill="#FBBC05"
+                        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                    <path fill="#EA4335"
+                        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                </svg>
+                <span>Login dengan Google</span>
+            </a>
+
+            <!-- Option 2: Login dengan Akun Nyamimo (Form) -->
+            <button type="button" @click="view = 'form'"
+                class="w-full py-3.5 px-4 rounded-xl border border-[#E2E2DC] hover:border-[#FFCC00] hover:bg-[#F6F5F0] text-[#1A1A1E] font-bold font-title text-sm flex items-center justify-center gap-3 transition-all shadow-sm group">
+                <i data-lucide="user" class="w-5 h-5 text-[#17171B] shrink-0"></i>
+                <span>Login dengan Akun Nyamimo</span>
+            </button>
+        </div>
+
+        <!-- View 2: Form Input Username & Password -->
+        <div x-show="view === 'form'" style="display: none;" class="space-y-4">
+            <button type="button" @click="view = 'options'"
+                class="text-xs text-[#55555B] font-bold hover:text-[#17171B] flex items-center gap-1 transition-colors">
+                <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+                <span>Kembali ke pilihan login</span>
+            </button>
+
+            <form action="/api/login" method="POST" class="space-y-4 text-xs font-semibold">
+                <div class="space-y-1.5">
+                    <label class="text-[#1A1A1E] font-bold block">Username</label>
+                    <div class="relative flex items-center">
+                        <span class="absolute left-3.5 text-[#A0A0A8]">
+                            <i data-lucide="user" class="w-4 h-4"></i>
+                        </span>
+                        <input type="text" id="login-username" name="username" required
+                            placeholder="Masukkan username kamu"
+                            class="w-full bg-[#F6F5F0] border border-[#E2E2DC] focus:border-[#FFCC00] focus:bg-white rounded-xl pl-10 pr-4 py-3 text-[#1A1A1E] text-xs font-medium outline-none transition-all" />
+                    </div>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="text-[#1A1A1E] font-bold block">Kata Sandi</label>
+                    <div class="relative flex items-center" x-data="{ showPass: false }">
+                        <span class="absolute left-3.5 text-[#A0A0A8]">
+                            <i data-lucide="lock" class="w-4 h-4"></i>
+                        </span>
+                        <input :type="showPass ? 'text' : 'password'" id="login-password" name="password" required
+                            placeholder="Masukkan kata sandi"
+                            class="w-full bg-[#F6F5F0] border border-[#E2E2DC] focus:border-[#FFCC00] focus:bg-white rounded-xl pl-10 pr-10 py-3 text-[#1A1A1E] text-xs font-medium outline-none transition-all" />
+                        <button type="button" @click="showPass = !showPass"
+                            class="absolute right-3.5 text-[#A0A0A8] hover:text-[#17171B] transition-colors"
+                            title="Tampilkan / Sembunyikan Kata Sandi">
+                            <i x-show="!showPass" data-lucide="eye" class="w-4 h-4"></i>
+                            <i x-show="showPass" data-lucide="eye-off" class="w-4 h-4" style="display: none;"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between pt-1">
+                    <label
+                        class="flex items-center gap-2 cursor-pointer select-none text-[11px] text-[#55555B] font-medium">
+                        <input type="checkbox" checked class="rounded border-[#E2E2DC] text-[#FFCC00] focus:ring-0" />
+                        <span>Ingat Saya</span>
+                    </label>
+
+                    <div class="flex items-center gap-1 text-[10px]">
+                        <span class="text-[#A0A0A8]">Auto-fill:</span>
+                        <button type="button"
+                            onclick="document.getElementById('login-username').value='admin'; document.getElementById('login-password').value='admin123';"
+                            class="px-2 py-0.5 rounded bg-[#F6F5F0] hover:bg-[#FFCC00] text-[#17171B] font-bold border border-[#E2E2DC] transition-colors">Admin</button>
+                        <button type="button"
+                            onclick="document.getElementById('login-username').value='user'; document.getElementById('login-password').value='user123';"
+                            class="px-2 py-0.5 rounded bg-[#F6F5F0] hover:bg-[#FFCC00] text-[#17171B] font-bold border border-[#E2E2DC] transition-colors">User</button>
+                    </div>
+                </div>
+
+                <button type="submit"
+                    class="w-full py-3.5 rounded-xl bg-[#17171B] hover:bg-[#FFCC00] text-[#FFCC00] hover:text-[#17171B] font-bold font-title text-sm transition-all flex items-center justify-center gap-2 shadow-md group">
+                    <i data-lucide="log-in" class="w-4 h-4"></i>
+                    <span>Masuk Sekarang</span>
+                </button>
+            </form>
+        </div>
+
+        <!-- View 3: Form Registrasi Akun -->
+        <div x-show="view === 'register'" style="display: none;" class="space-y-4">
+            <button type="button" @click="view = 'options'"
+                class="text-xs text-[#55555B] font-bold hover:text-[#17171B] flex items-center gap-1 transition-colors">
+                <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+                <span>Kembali ke pilihan login</span>
+            </button>
+
+            <form action="/api/register" method="POST" class="space-y-3.5 text-xs font-semibold">
+                <div class="space-y-1.5">
+                    <label class="text-[#1A1A1E] font-bold block">Nama Lengkap</label>
+                    <div class="relative flex items-center">
+                        <span class="absolute left-3.5 text-[#A0A0A8]">
+                            <i data-lucide="user-check" class="w-4 h-4"></i>
+                        </span>
+                        <input type="text" name="name" required
+                            placeholder="Nama Lengkap Kamu"
+                            class="w-full bg-[#F6F5F0] border border-[#E2E2DC] focus:border-[#FFCC00] focus:bg-white rounded-xl pl-10 pr-4 py-3 text-[#1A1A1E] text-xs font-medium outline-none transition-all" />
+                    </div>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="text-[#1A1A1E] font-bold block">Username</label>
+                    <div class="relative flex items-center">
+                        <span class="absolute left-3.5 text-[#A0A0A8]">
+                            <i data-lucide="user" class="w-4 h-4"></i>
+                        </span>
+                        <input type="text" name="username" required
+                            placeholder="Pilih username unik kamu"
+                            class="w-full bg-[#F6F5F0] border border-[#E2E2DC] focus:border-[#FFCC00] focus:bg-white rounded-xl pl-10 pr-4 py-3 text-[#1A1A1E] text-xs font-medium outline-none transition-all" />
+                    </div>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="text-[#1A1A1E] font-bold block">Kata Sandi</label>
+                    <div class="relative flex items-center" x-data="{ showRegPass: false }">
+                        <span class="absolute left-3.5 text-[#A0A0A8]">
+                            <i data-lucide="lock" class="w-4 h-4"></i>
+                        </span>
+                        <input :type="showRegPass ? 'text' : 'password'" name="password"
+                            required placeholder="Buat kata sandi minimal 6 karakter"
+                            class="w-full bg-[#F6F5F0] border border-[#E2E2DC] focus:border-[#FFCC00] focus:bg-white rounded-xl pl-10 pr-10 py-3 text-[#1A1A1E] text-xs font-medium outline-none transition-all" />
+                        <button type="button" @click="showRegPass = !showRegPass"
+                            class="absolute right-3.5 text-[#A0A0A8] hover:text-[#17171B] transition-colors"
+                            title="Tampilkan / Sembunyikan Kata Sandi">
+                            <i x-show="!showRegPass" data-lucide="eye" class="w-4 h-4"></i>
+                            <i x-show="showRegPass" data-lucide="eye-off" class="w-4 h-4" style="display: none;"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit"
+                    class="w-full py-3.5 rounded-xl bg-[#17171B] hover:bg-[#FFCC00] text-[#FFCC00] hover:text-[#17171B] font-bold font-title text-sm transition-all flex items-center justify-center gap-2 shadow-md group mt-1">
+                    <i data-lucide="user-plus" class="w-4 h-4"></i>
+                    <span>Daftar Sekarang</span>
+                </button>
+            </form>
+        </div>
+
+        <!-- Terms Footer -->
+        <div class="pt-4 border-t border-[#E2E2DC] space-y-2.5 text-center text-[11px] text-[#55555B]">
+            <label class="flex items-start justify-center gap-2 cursor-pointer select-none leading-tight">
+                <input type="checkbox" checked
+                    class="mt-0.5 rounded border-[#E2E2DC] text-[#FFCC00] focus:ring-0 shrink-0" />
+                <span>Saya setuju dengan <a href="#" class="underline hover:text-[#17171B]">Syarat Layanan</a> & <a
+                        href="#" class="underline hover:text-[#17171B]">Kebijakan Privasi</a></span>
+            </label>
+            <div>
+                <span x-show="view !== 'register'">
+                    Tidak punya akun? <button type="button" @click="view = 'register'; $nextTick(() => { if (window.lucide) lucide.createIcons(); })"
+                        class="font-extrabold text-[#17171B] underline hover:text-[#FFCC00] cursor-pointer">Registrasi Sekarang</button>
+                </span>
+                <span x-show="view === 'register'" style="display: none;">
+                    Sudah memiliki akun? <button type="button" @click="view = 'form'; $nextTick(() => { if (window.lucide) lucide.createIcons(); })"
+                        class="font-extrabold text-[#17171B] underline hover:text-[#FFCC00] cursor-pointer">Masuk di Sini</button>
+                </span>
+            </div>
+        </div>
+
+    </div>
+</div>
+<script>
+    if (window.lucide) lucide.createIcons();
+</script>
+{{end}}

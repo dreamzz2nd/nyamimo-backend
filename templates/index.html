@@ -1,0 +1,119 @@
+{{define "content"}}
+<div class="space-y-8 pb-12">
+    
+    <!-- Hero Showcase Section (Bstation Full Screen Banner Style) -->
+    <section class="relative w-full h-screen min-h-screen bg-[#17002C] overflow-hidden" data-purpose="hero-carousel">
+        <div class="swiper hero-swiper w-full h-full">
+            <div class="swiper-wrapper h-full">
+                {{range $idx, $anime := .HeroAnime}}
+                <div class="swiper-slide relative w-full h-screen min-h-screen overflow-hidden bg-[#17002C]">
+                    
+                    <!-- Background Character Art (Right Side Poster Image) -->
+                    <div class="absolute right-0 top-0 bottom-0 w-full lg:w-[65%] h-full z-0 overflow-hidden">
+                        <img 
+                            src="{{cleanHDImg $anime.Img}}" 
+                            alt="{{$anime.Title}}" 
+                            decoding="async"
+                            class="w-full h-full object-cover object-top lg:object-center filter brightness-105 contrast-105"
+                        />
+                        <!-- Gradient Blends (Left fade & Bottom fade into theme) -->
+                        <div class="absolute inset-0 bg-gradient-to-r from-[#17002C] via-[#17002C]/85 to-transparent lg:via-[#17002C]/50"></div>
+                        <div class="absolute inset-0 bg-gradient-to-t from-[#17002C] via-transparent to-transparent opacity-90"></div>
+                    </div>
+
+                    <!-- Hero Left Content Container -->
+                    <div class="relative z-10 max-w-[1720px] mx-auto px-6 sm:px-12 lg:px-16 h-full flex flex-col justify-center">
+                        <div class="max-w-xl lg:max-w-2xl space-y-4 pt-6 sm:pt-0">
+                            
+                            <!-- Main Anime Title -->
+                            <h1 class="font-title text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white drop-shadow-md leading-[1.1]">
+                                {{$anime.Title}}
+                            </h1>
+
+                            <!-- Tag Badges (Bstation Style Pills) -->
+                            <div class="flex flex-wrap items-center gap-2 text-xs font-semibold text-white/90 pt-1">
+                                <span class="px-3 py-1 rounded-md bg-white/15 backdrop-blur-md border border-white/20">
+                                    {{if $anime.Type}}{{$anime.Type}}{{else}}Anime HD{{end}}
+                                </span>
+                                <span class="px-3 py-1 rounded-md bg-white/15 backdrop-blur-md border border-white/20">
+                                    Sub Indo
+                                </span>
+                                <span class="px-3 py-1 rounded-md bg-white/15 backdrop-blur-md border border-white/20">
+                                    {{if $anime.Episode}}{{$anime.Episode}}{{else}}Diperbarui Lengkap{{end}}
+                                </span>
+                                {{if $anime.Score}}
+                                <span class="px-3 py-1 rounded-md bg-[#FFCC00] text-[#17171B] font-extrabold flex items-center gap-1 shadow-sm">
+                                    ★ {{$anime.Score}}
+                                </span>
+                                {{end}}
+                            </div>
+
+                            <!-- Description / Synopsis snippet -->
+                            <p class="text-xs sm:text-sm text-white/80 leading-relaxed line-clamp-3 max-w-xl font-normal drop-shadow-sm">
+                                Nonton streaming anime {{$anime.Title}} Subtitle Indonesia terbaru full episode gratis resolusi HD jernih tanpa kendala hanya di Nyamimo.
+                            </p>
+
+                            <!-- Bstation Action Buttons -->
+                            <div class="flex items-center gap-3 pt-3">
+                                <!-- Putar sekarang button (White solid with black text) -->
+                                <a 
+                                    href="/anime/{{$anime.Slug}}" 
+                                    class="px-6 sm:px-7 py-3 rounded-xl bg-white hover:bg-gray-100 text-[#17171B] font-bold font-title text-sm sm:text-base flex items-center gap-2.5 shadow-lg transition-all transform hover:-translate-y-0.5"
+                                >
+                                    <i data-lucide="play" class="w-5 h-5 fill-current text-[#17171B]"></i>
+                                    <span>Putar sekarang</span>
+                                </a>
+
+                                <!-- Favorit Saya button (Translucent Purple/Dark Blur) -->
+                                <button 
+                                    onclick="MyList.toggle({link: '/anime/{{$anime.Slug}}', img: '{{$anime.Img}}', title: '{{$anime.Title}}'}); alert('Ditambahkan ke Favorit Saya!');" 
+                                    class="px-5 sm:px-6 py-3 rounded-xl bg-white/15 hover:bg-white/25 text-white font-bold font-title text-sm sm:text-base flex items-center gap-2 backdrop-blur-md border border-white/20 transition-all"
+                                >
+                                    <i data-lucide="bookmark" class="w-5 h-5"></i>
+                                    <span>Favorit Saya</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {{end}}
+            </div>
+
+            <!-- Bottom Left Pagination Dots -->
+            <div class="swiper-pagination !bottom-8 sm:!bottom-10 !left-6 sm:!left-12 lg:!left-16 !w-auto text-left z-30"></div>
+        </div>
+    </section>
+
+    <!-- On Going Anime Section -->
+    {{template "section" .OngoingSection}}
+
+    <!-- Completed Anime Section -->
+    {{template "section" .CompletedSection}}
+
+    <!-- Lazy Loaded Genre & Type Sections via HTMX Intersect -->
+    <div class="space-y-4">
+        {{range .LazySections}}
+        <div 
+            hx-get="/api/section/genre?id={{.ID}}&title={{.Title}}" 
+            hx-trigger="intersect once" 
+            hx-swap="outerHTML" 
+            class="max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 my-6"
+        >
+            <div class="h-32 bg-[#212126] border border-[#2B2B32] rounded-xl flex items-center justify-center gap-2 text-[#A0A0A8] text-xs font-semibold font-title">
+                <i data-lucide="loader-2" class="w-4 h-4 animate-spin text-[#FFCC00]"></i> Memuat {{.Title}}...
+            </div>
+        </div>
+        {{end}}
+    </div>
+</div>
+
+<script>
+    new Swiper('.hero-swiper', {
+        loop: true,
+        autoplay: { delay: 5000, disableOnInteraction: false },
+        pagination: { el: '.swiper-pagination', clickable: true },
+        effect: 'fade',
+        fadeEffect: { crossFade: true }
+    });
+</script>
+{{end}}

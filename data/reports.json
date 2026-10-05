@@ -1,0 +1,17 @@
+[
+  {
+    "id": "rep-1790865556881249800",
+    "anime_slug": "made-in-abyss-subtitle-indonesia",
+    "anime_title": "Made in Abyss",
+    "episode_num": "2",
+    "server_name": "DesuStream HD",
+    "video_url": "https://desustream.me/xyz",
+    "issue_type": "video_broken",
+    "issue_label": "Layar Hitam / Rusak",
+    "note": "Menit 04:12 pemutar video blank hitam dan tidak mau buffering",
+    "reporter": "Tamu (Guest)",
+    "ip": "127.0.0.1",
+    "created_at": "2026-10-01T21:39:16.8812498+07:00",
+    "status": "pending"
+  }
+]

@@ -1,0 +1,221 @@
+{{define "navbar"}}
+<header 
+    x-data="{ 
+        scrolled: false, 
+        mobileSearchOpen: false, 
+        searchOpen: false, 
+        isHome: {{if eq .CurrentPage "home"}}true{{else}}false{{end}} 
+    }" 
+    @scroll.window="scrolled = (window.scrollY > 50)" 
+    :class="(isHome && !scrolled) ? 'fixed top-0 left-0 right-0 z-50 w-full transition-all duration-300 bg-gradient-to-b from-[#17002C]/90 via-[#17002C]/40 to-transparent text-white border-0 shadow-none' : 'sticky top-0 left-0 right-0 z-50 w-full transition-all duration-300 bg-white/95 backdrop-blur-md border-b border-[#E2E2DC] shadow-sm text-[#1A1A1E]'"
+>
+    <div class="max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 h-14 md:h-16 flex items-center justify-between gap-2 md:gap-4">
+        
+        <!-- Left: Logo & Navigation Links -->
+        {{$cfg := siteConfig}}
+        <div class="flex items-center gap-4 md:gap-8 shrink-0">
+            <!-- Brand Logo -->
+            <a href="/" class="flex items-center gap-2 group" data-purpose="site-logo">
+                <div class="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center group-hover:scale-105 transition-transform shrink-0">
+                    <img src="{{$cfg.SiteLogo}}" alt="{{$cfg.SiteName}} Logo" class="w-full h-full object-contain filter drop-shadow-sm" />
+                </div>
+                <div class="flex flex-col leading-none">
+                    <span class="text-lg md:text-xl font-extrabold font-title tracking-tight" :class="(isHome && !scrolled) ? 'text-white' : 'text-[#1A1A1E]'">
+                        {{$cfg.SiteName}}
+                    </span>
+                    <span class="text-[8px] md:text-[9px] font-bold font-title uppercase tracking-widest text-[#FFCC00]">
+                        ANIME STREAM
+                    </span>
+                </div>
+            </a>
+
+            <!-- Desktop & Tablet Navigation Links (md:flex) -->
+            <nav class="hidden md:flex items-center space-x-1 lg:space-x-1.5 text-xs lg:text-sm font-semibold">
+                <a href="/" :class="isHome && !scrolled ? 'text-white/90 hover:text-white hover:bg-white/10' : 'text-[#55555B] hover:text-[#1A1A1E] hover:bg-[#F6F5F0]'" class="px-2.5 lg:px-3.5 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 {{if eq .CurrentPage "home"}}!bg-[#FFCC00] !text-[#17171B] font-bold{{end}}">
+                    Beranda
+                </a>
+                <a href="/popular" :class="isHome && !scrolled ? 'text-white/90 hover:text-white hover:bg-white/10' : 'text-[#55555B] hover:text-[#1A1A1E] hover:bg-[#F6F5F0]'" class="px-2.5 lg:px-3.5 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 {{if eq .CurrentPage "popular"}}!bg-[#FFCC00] !text-[#17171B] font-bold{{end}}">
+                    Anime
+                </a>
+                <a href="/schedule" :class="isHome && !scrolled ? 'text-white/90 hover:text-white hover:bg-white/10' : 'text-[#55555B] hover:text-[#1A1A1E] hover:bg-[#F6F5F0]'" class="px-2.5 lg:px-3.5 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 {{if eq .CurrentPage "schedule"}}!bg-[#FFCC00] !text-[#17171B] font-bold{{end}}">
+                    Jadwal
+                </a>
+                <a href="/genres" :class="isHome && !scrolled ? 'text-white/90 hover:text-white hover:bg-white/10' : 'text-[#55555B] hover:text-[#1A1A1E] hover:bg-[#F6F5F0]'" class="px-2.5 lg:px-3.5 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 {{if eq .CurrentPage "genres"}}!bg-[#FFCC00] !text-[#17171B] font-bold{{end}}">
+                    Kategori
+                </a>
+                <a href="/type" :class="isHome && !scrolled ? 'text-white/90 hover:text-white hover:bg-white/10' : 'text-[#55555B] hover:text-[#1A1A1E] hover:bg-[#F6F5F0]'" class="px-2.5 lg:px-3.5 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 {{if eq .CurrentPage "type"}}!bg-[#FFCC00] !text-[#17171B] font-bold{{end}}">
+                    Ranking
+                </a>
+            </nav>
+        </div>
+
+        <!-- Center: Search Input Bar (Desktop & Tablet) -->
+        <div class="flex-1 max-w-xl mx-2 relative hidden sm:block" @click.outside="searchOpen = false">
+            <form action="/search" method="GET" class="relative w-full" onsubmit="SearchHistory.add(this.q.value)" autocomplete="off">
+                <input 
+                    type="search" 
+                    name="q" 
+                    autocomplete="off"
+                    autocorrect="off"
+                    autocapitalize="off"
+                    spellcheck="false"
+                    placeholder="Cari anime, karakter, atau studio..." 
+                    class="w-full text-xs sm:text-sm pl-4 pr-11 py-2 rounded-lg border focus:outline-none transition-colors"
+                    :class="(isHome && !scrolled) ? 'bg-white/15 hover:bg-white/25 focus:bg-white text-white focus:text-[#1A1A1E] placeholder-white/70 border-white/20 focus:border-[#FFCC00]' : 'bg-[#F6F5F0] hover:bg-[#E2E2DC]/50 focus:bg-white text-[#1A1A1E] placeholder-[#55555B] border-[#E2E2DC] focus:border-[#FFCC00]'"
+                    hx-get="/api/search-suggest" 
+                    hx-target="#search-results" 
+                    hx-trigger="focus, click, keyup changed delay:200ms, search"
+                    @focus="searchOpen = true; $nextTick(() => { if (typeof renderSearchHistory === 'function') renderSearchHistory(); })"
+                    @click="searchOpen = true; $nextTick(() => { if (typeof renderSearchHistory === 'function') renderSearchHistory(); })"
+                />
+                <button type="submit" class="absolute right-3 top-1/2 -translate-y-1/2 transition-colors" :class="(isHome && !scrolled) ? 'text-white/80 hover:text-white' : 'text-[#55555B] hover:text-[#1A1A1E]'">
+                    <i data-lucide="search" class="w-4 h-4"></i>
+                </button>
+            </form>
+            
+            <!-- Instant Search Dropdown Modal -->
+            <div 
+                id="search-results" 
+                x-show="searchOpen" 
+                x-transition 
+                class="absolute left-1/2 -translate-x-1/2 w-[540px] md:w-[620px] max-w-[90vw] mt-2 bg-white text-[#1A1A1E] border border-[#E2E2DC] rounded-2xl shadow-2xl overflow-hidden z-50 max-h-[85vh] overflow-y-auto"
+                style="display: none;"
+            >
+            </div>
+        </div>
+
+        <!-- Right Controls: Mobile Search Toggle, Riwayat, Admin & Profile -->
+        <div class="flex items-center gap-1.5 md:gap-2 shrink-0">
+            
+            <!-- Mobile Search Icon Button (< sm:hidden) -->
+            <button 
+                type="button" 
+                @click="mobileSearchOpen = !mobileSearchOpen" 
+                class="sm:hidden p-2 rounded-lg transition-colors"
+                :class="(isHome && !scrolled) ? 'text-white/90 hover:bg-white/10' : 'text-[#55555B] hover:bg-[#F6F5F0]'"
+            >
+                <i data-lucide="search" class="w-5 h-5"></i>
+            </button>
+
+            <!-- Riwayat Tontonan Link (For Guest & Member) -->
+            <a href="/profile" 
+                class="px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold transition-colors border font-title flex items-center gap-1.5 {{if eq .CurrentPage "profile"}}!bg-[#FFCC00] !text-[#17171B] border-[#FFCC00]{{end}}"
+                :class="(isHome && !scrolled) ? 'bg-white/15 hover:bg-white/25 text-white border-white/20' : 'bg-[#F6F5F0] hover:bg-[#E2E2DC] text-[#1A1A1E] border-[#E2E2DC]'"
+                title="Riwayat Tontonan">
+                <i data-lucide="history" class="w-3.5 h-3.5 text-[#FFCC00]"></i>
+                <span class="hidden sm:inline">Riwayat</span>
+            </a>
+
+            <!-- Admin Dashboard Link (Admin only) -->
+            {{if .User}}
+                {{if eq .User.Role "admin"}}
+                <a href="/admin" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-[#FFCC00] hover:bg-[#e6b800] text-[#17171B] border border-[#FFCC00] transition-colors shadow-sm" title="Panel Kontrol Administrator">
+                    <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+                    <span class="hidden sm:inline">Dashboard</span>
+                </a>
+                {{end}}
+            {{end}}
+
+            <!-- User Profile / Login Button -->
+            {{if .User}}
+                <a href="/profile" class="w-8 h-8 rounded-lg overflow-hidden bg-[#17171B] hover:bg-[#212126] text-[#FFCC00] flex items-center justify-center font-bold font-title text-xs border border-[#17171B] transition-colors shadow-sm" title="{{.User.Name}} (@{{.User.Username}})">
+                    {{if .User.Avatar}}
+                    <img src="{{.User.Avatar}}" alt="{{.User.Name}}" class="w-full h-full object-cover" />
+                    {{else}}
+                    {{.User.Name | firstChar}}
+                    {{end}}
+                </a>
+            {{else}}
+                <button type="button" @click="showLoginModal = true; loginView = 'options'" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-colors border font-title cursor-pointer" :class="(isHome && !scrolled) ? 'bg-white/15 hover:bg-white/25 text-white border-white/20' : 'bg-[#17171B] hover:bg-[#212126] text-[#FFCC00] border-[#17171B]'">
+                    Masuk
+                </button>
+            {{end}}
+        </div>
+    </div>
+
+    <!-- Mobile Search Expandable Header Bar (< sm:hidden) -->
+    <div x-show="mobileSearchOpen" x-transition class="sm:hidden bg-white border-b border-[#E2E2DC] px-4 py-3">
+        <form action="/search" method="GET" class="relative" onsubmit="SearchHistory.add(this.q.value)" autocomplete="off">
+            <input 
+                type="search" 
+                name="q" 
+                autocomplete="off"
+                autocorrect="off"
+                autocapitalize="off"
+                spellcheck="false"
+                placeholder="Cari anime, karakter..." 
+                class="w-full bg-[#F6F5F0] border border-[#E2E2DC] rounded-lg pl-9 pr-4 py-2 text-sm text-[#1A1A1E] focus:outline-none focus:border-[#FFCC00]"
+                hx-get="/api/search-suggest" 
+                hx-target="#search-results-mobile" 
+                hx-trigger="focus, click, keyup changed delay:200ms, search"
+                autofocus
+            />
+            <i data-lucide="search" class="w-4 h-4 text-[#55555B] absolute left-3 top-3"></i>
+            <div id="search-results-mobile" class="mt-2"></div>
+        </form>
+    </div>
+</header>
+
+<!-- Mobile Bottom Navigation Bar (Fixed Bottom UI for Mobile - md:hidden) -->
+<nav class="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-t border-[#E2E2DC] shadow-[0_-4px_24px_rgba(0,0,0,0.08)] px-2 pt-1.5 pb-[max(6px,env(safe-area-inset-bottom))] flex items-center justify-around">
+    
+    <!-- 1. Beranda -->
+    <a href="/" class="flex flex-col items-center justify-center min-w-[56px] py-1 px-2.5 rounded-xl transition-all duration-200 {{if eq .CurrentPage "home"}}bg-[#FFCC00]/20 text-[#17171B] font-extrabold shadow-xs{{else}}text-[#71717A] hover:text-[#1A1A1E] hover:bg-[#F6F5F0]{{end}}">
+        <i data-lucide="home" class="w-5 h-5 transition-transform {{if eq .CurrentPage "home"}}stroke-[2.5px] text-[#17171B] scale-105{{else}}stroke-[1.75px] text-[#71717A]{{end}}"></i>
+        <span class="text-[10px] tracking-tight font-title leading-tight mt-0.5 {{if eq .CurrentPage "home"}}text-[#17171B] font-extrabold{{else}}text-[#71717A] font-medium{{end}}">Beranda</span>
+        {{if eq .CurrentPage "home"}}
+        <span class="w-1.5 h-1 rounded-full bg-[#FFCC00] mt-0.5"></span>
+        {{end}}
+    </a>
+
+    <!-- 2. Anime Populer -->
+    <a href="/popular" class="flex flex-col items-center justify-center min-w-[56px] py-1 px-2.5 rounded-xl transition-all duration-200 {{if eq .CurrentPage "popular"}}bg-[#FFCC00]/20 text-[#17171B] font-extrabold shadow-xs{{else}}text-[#71717A] hover:text-[#1A1A1E] hover:bg-[#F6F5F0]{{end}}">
+        <i data-lucide="tv" class="w-5 h-5 transition-transform {{if eq .CurrentPage "popular"}}stroke-[2.5px] text-[#17171B] scale-105{{else}}stroke-[1.75px] text-[#71717A]{{end}}"></i>
+        <span class="text-[10px] tracking-tight font-title leading-tight mt-0.5 {{if eq .CurrentPage "popular"}}text-[#17171B] font-extrabold{{else}}text-[#71717A] font-medium{{end}}">Anime</span>
+        {{if eq .CurrentPage "popular"}}
+        <span class="w-1.5 h-1 rounded-full bg-[#FFCC00] mt-0.5"></span>
+        {{end}}
+    </a>
+
+    <!-- 3. Jadwal Rilis -->
+    <a href="/schedule" class="flex flex-col items-center justify-center min-w-[56px] py-1 px-2.5 rounded-xl transition-all duration-200 {{if eq .CurrentPage "schedule"}}bg-[#FFCC00]/20 text-[#17171B] font-extrabold shadow-xs{{else}}text-[#71717A] hover:text-[#1A1A1E] hover:bg-[#F6F5F0]{{end}}">
+        <i data-lucide="calendar" class="w-5 h-5 transition-transform {{if eq .CurrentPage "schedule"}}stroke-[2.5px] text-[#17171B] scale-105{{else}}stroke-[1.75px] text-[#71717A]{{end}}"></i>
+        <span class="text-[10px] tracking-tight font-title leading-tight mt-0.5 {{if eq .CurrentPage "schedule"}}text-[#17171B] font-extrabold{{else}}text-[#71717A] font-medium{{end}}">Jadwal</span>
+        {{if eq .CurrentPage "schedule"}}
+        <span class="w-1.5 h-1 rounded-full bg-[#FFCC00] mt-0.5"></span>
+        {{end}}
+    </a>
+
+    <!-- 4. Riwayat Tontonan -->
+    <a href="/profile" class="flex flex-col items-center justify-center min-w-[56px] py-1 px-2.5 rounded-xl transition-all duration-200 {{if eq .CurrentPage "profile"}}bg-[#FFCC00]/20 text-[#17171B] font-extrabold shadow-xs{{else}}text-[#71717A] hover:text-[#1A1A1E] hover:bg-[#F6F5F0]{{end}}">
+        <i data-lucide="history" class="w-5 h-5 transition-transform {{if eq .CurrentPage "profile"}}stroke-[2.5px] text-[#17171B] scale-105{{else}}stroke-[1.75px] text-[#71717A]{{end}}"></i>
+        <span class="text-[10px] tracking-tight font-title leading-tight mt-0.5 {{if eq .CurrentPage "profile"}}text-[#17171B] font-extrabold{{else}}text-[#71717A] font-medium{{end}}">Riwayat</span>
+        {{if eq .CurrentPage "profile"}}
+        <span class="w-1.5 h-1 rounded-full bg-[#FFCC00] mt-0.5"></span>
+        {{end}}
+    </a>
+
+    <!-- 5. Akun / Masuk -->
+    {{if .User}}
+    <a href="/profile" class="flex flex-col items-center justify-center min-w-[56px] py-1 px-2.5 rounded-xl transition-all duration-200 text-[#71717A] hover:text-[#1A1A1E] hover:bg-[#F6F5F0]">
+        <div class="w-5.5 h-5.5 rounded-lg overflow-hidden bg-[#17171B] text-[#FFCC00] flex items-center justify-center font-bold text-[10px] font-title border border-[#E2E2DC] shadow-xs relative">
+            {{if .User.Avatar}}
+            <img src="{{.User.Avatar}}" alt="{{.User.Name}}" class="w-full h-full object-cover" />
+            {{else}}
+            {{.User.Name | firstChar}}
+            {{end}}
+            {{if eq .User.Role "admin"}}
+            <span class="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-[#FFCC00] border border-[#17171B] flex items-center justify-center text-[7px]">👑</span>
+            {{end}}
+        </div>
+        <span class="text-[10px] tracking-tight font-title leading-tight mt-0.5 text-[#55555B] font-semibold truncate max-w-[50px]">{{if eq .User.Role "admin"}}Admin{{else}}Akun{{end}}</span>
+    </a>
+    {{else}}
+    <button type="button" @click="showLoginModal = true; loginView = 'options'" class="flex flex-col items-center justify-center min-w-[56px] py-1 px-2.5 rounded-xl transition-all duration-200 text-[#71717A] hover:text-[#1A1A1E] hover:bg-[#F6F5F0] cursor-pointer">
+        <i data-lucide="log-in" class="w-5 h-5 stroke-[1.75px] text-[#71717A]"></i>
+        <span class="text-[10px] tracking-tight font-title leading-tight mt-0.5 text-[#55555B] font-semibold">Masuk</span>
+    </button>
+    {{end}}
+
+</nav>
+{{end}}

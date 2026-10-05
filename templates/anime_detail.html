@@ -1,0 +1,2547 @@
+{{define "content"}}
+<div id="anime-meta-context" class="hidden" data-slug="{{.Slug}}" data-title="{{.Detail.Title}}" data-img="{{.Detail.Img}}" data-active-ep="{{.ActiveEpisodeNum}}"></div>
+<div class="max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- Breadcrumb Bar -->
+    <nav class="flex items-center gap-2 text-xs text-[#55555B] font-medium overflow-x-auto whitespace-nowrap">
+        <a href="/" class="hover:text-[#1A1A1E] transition-colors">Beranda</a>
+        <span>/</span>
+        <a href="/popular" class="hover:text-[#1A1A1E] transition-colors">Anime</a>
+        <span>/</span>
+        <a href="/anime/{{.Slug}}" class="hover:text-[#1A1A1E] transition-colors">{{.Detail.Title}}</a>
+        <span>/</span>
+        <span id="breadcrumb-ep-num" class="text-[#1A1A1E] font-bold">Episode {{.ActiveEpisodeNum}}</span>
+    </nav>
+
+    <!-- Top Headline Header -->
+    <div class="border-b border-[#E2E2DC] pb-4 space-y-1">
+        <div class="flex items-center gap-2 text-xs font-semibold">
+            <span id="headline-badge-ep"
+                class="bg-[#FFCC00] text-[#17171B] font-extrabold px-2.5 py-0.5 rounded-md uppercase tracking-wider text-[11px] font-title shadow-sm">
+                EPISODE {{.ActiveEpisodeNum}}
+            </span>
+            <span class="text-[#55555B] font-medium">• Subtitle Indonesia • Playback Auto</span>
+        </div>
+        <h1 id="headline-main-title" class="text-xl sm:text-2xl md:text-3xl font-bold font-title text-[#1A1A1E] tracking-tight">
+            {{.Detail.Title}} — Episode {{.ActiveEpisodeNum}}{{if .ActiveEpisodeTitle}}: {{.ActiveEpisodeTitle}}{{end}}
+        </h1>
+    </div>
+
+    <!-- Main Dual Column Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+        <!-- Left Column: Video Player & Diagnostics (8/9 Cols) -->
+        <div class="lg:col-span-8 xl:col-span-9 space-y-4">
+
+            <div id="inline-player-area">
+                {{template "inline_player_area" .}}
+            </div>
+
+            <!-- Card: AI Subtitle & Multi-Bahasa Selector -->
+            <div class="bg-white border border-[#E2E2DC] rounded-xl p-4 sm:p-5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-[#FFCC00]/15 border border-[#FFCC00]/40 flex items-center justify-center text-[#17171B] shrink-0">
+                        <i data-lucide="subtitles" class="w-5 h-5 text-[#17171B]"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h3 class="font-title font-bold text-sm text-[#1A1A1E]">AI Subtitle & Multi-Bahasa</h3>
+                            <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-[#FFCC00] text-[#17171B] shadow-xs">AUTO TRANSLATE</span>
+                        </div>
+                        <p class="text-xs text-[#55555B] leading-relaxed mt-0.5">
+                            Ganti bahasa teks subtitle anime secara instan & realtime dengan AI.
+                        </p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 flex-wrap" id="detail-subtitle-group">
+                    <button type="button" onclick="switchDetailSubtitle('id')" class="sub-btn-detail px-3.5 py-1.5 rounded-lg bg-[#FFCC00] text-[#17171B] font-bold text-xs flex items-center gap-1.5 transition-all shadow-sm border border-[#FFCC00] cursor-pointer">
+                        <span>🇮🇩</span> Indonesia (AI)
+                    </button>
+                    <button type="button" onclick="switchDetailSubtitle('en')" class="sub-btn-detail px-3.5 py-1.5 rounded-lg bg-[#F6F5F0] hover:bg-[#E2E2DC] text-[#1A1A1E] font-medium text-xs border border-[#E2E2DC] flex items-center gap-1.5 transition-all cursor-pointer">
+                        <span>🇬🇧</span> English (Original)
+                    </button>
+                    <button type="button" onclick="switchDetailSubtitle('off')" class="sub-btn-detail px-3.5 py-1.5 rounded-lg bg-[#F6F5F0] hover:bg-[#E2E2DC] text-[#55555B] hover:text-[#17171B] font-medium text-xs border border-[#E2E2DC] flex items-center gap-1.5 transition-all cursor-pointer">
+                        <span>❌</span> Off
+                    </button>
+                </div>
+            </div>
+
+            <!-- Card: Pilihan Server Streaming (Provider) -->
+            <div class="bg-white border border-[#E2E2DC] rounded-xl p-4 sm:p-5 shadow-sm space-y-3">
+                <div
+                    class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#E2E2DC] pb-2.5 gap-2">
+                    <div class="flex items-center gap-3 flex-wrap">
+                        <h3 class="font-title font-bold text-sm text-[#1A1A1E] flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 bg-[#FFCC00] rounded-sm"></span> Pilihan Server Streaming
+                        </h3>
+                        <div
+                            class="flex items-center gap-1.5 text-xs bg-[#F6F5F0] border border-[#E2E2DC] px-2.5 py-1 rounded-lg">
+                            <span class="text-[#55555B] font-medium text-[11px]">Sedang Aktif:</span>
+                            <span id="active-server-name"
+                                class="font-bold text-[#17171B] font-title flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-[#FFCC00] animate-pulse"></span>
+                                {{if .Videos}}{{with index .Videos 0}}{{.Title}}{{end}}{{else}}Auto{{end}}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label
+                            class="inline-flex items-center gap-2 cursor-pointer select-none bg-[#F6F5F0] hover:bg-[#E2E2DC] border border-[#E2E2DC] px-2.5 py-1 rounded-lg transition-colors">
+                            <input type="checkbox" id="auto-switch-toggle" class="sr-only peer"
+                                onchange="toggleAutoSwitchServer(this.checked)" {{if .AutoSwitchServer}}checked{{end}}>
+                            <div
+                                class="relative w-7 h-4 bg-[#D1D1CB] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-[#17171B]">
+                            </div>
+                            <span class="font-bold text-xs text-[#1A1A1E] font-title">Auto Switch Server</span>
+                            <span id="auto-switch-status"
+                                class="text-[10px] px-1.5 py-0.5 rounded {{if .AutoSwitchServer}}bg-[#FFCC00] text-[#17171B]{{else}}bg-[#E2E2DC] text-[#55555B]{{end}} font-extrabold font-title">{{if .AutoSwitchServer}}ON{{else}}OFF{{end}}</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div id="server-list-container">
+                    {{if .GroupedVideos}}
+                    {{$firstVideoPath := ""}}
+                    {{if .Videos}}{{$firstVideoPath = (index .Videos 0).Video}}{{end}}
+                    <div class="grid gap-3">
+                        {{range $provider, $videos := .GroupedVideos}}
+                        <div class="bg-[#F6F5F0] border border-[#E2E2DC] rounded-xl p-3">
+                            <div
+                                class="text-[11px] font-extrabold font-title text-[#17171B] uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                <i data-lucide="server" class="w-3.5 h-3.5 text-[#FFCC00]"></i> {{$provider}}
+                            </div>
+                            <div class="flex flex-wrap gap-2">
+                                {{range $videos}}
+                                {{$isActive := eq .Video $firstVideoPath}}
+                                <button data-video-path="{{.Video}}" data-video-title="{{.Title}}"
+                                    onclick="onServerBtnClick(this, '{{.Video}}', '{{.Title}}')"
+                                    class="server-btn px-3.5 py-1.5 rounded-lg text-xs font-bold font-title transition-all flex items-center gap-1.5 border shadow-sm cursor-pointer {{if $isActive}}active-server bg-[#17171B] text-[#FFCC00] border-[#17171B] ring-2 ring-[#FFCC00]/40 shadow-md{{else}}bg-white text-[#1A1A1E] border-[#E2E2DC] hover:bg-[#FFCC00] hover:text-[#17171B]{{end}}">
+                                    <span
+                                        class="server-active-dot w-2 h-2 rounded-full bg-[#FFCC00] animate-pulse {{if not $isActive}}hidden{{end}}"></span>
+                                    <span>{{.Title}}</span>
+                                </button>
+                                {{end}}
+                            </div>
+                        </div>
+                        {{end}}
+                    </div>
+                    {{else}}
+                    <p class="text-xs text-[#55555B]">Server dikonfigurasi otomatis dalam mode optimal.</p>
+                    {{end}}
+                </div>
+            </div>
+
+            <!-- Catatan Diagnostik & Lapor Error Box -->
+            <div
+                class="bg-white border border-[#E2E2DC] rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div class="flex items-start gap-3">
+                    <div
+                        class="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-600 shrink-0 mt-0.5">
+                        <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-xs font-bold font-title text-[#1A1A1E]">Ada Masalah / Video Tidak Bisa Diputar?</h4>
+                        <p class="text-xs text-[#55555B] leading-relaxed mt-0.5">
+                            Jika video buffering, layar hitam, atau subtitle rusak, kamu bisa lapor langsung ke admin agar segera diperbaiki.
+                        </p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 shrink-0">
+                    <button type="button" onclick="openErrorReportModal()"
+                        class="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs transition-all flex items-center gap-2 shadow-md hover:shadow-lg active:scale-95 font-title cursor-pointer">
+                        <i data-lucide="flag" class="w-4 h-4"></i>
+                        <span>Lapor Anime Error</span>
+                    </button>
+                    <button onclick="copyDiagnosticsLog()"
+                        class="px-3 py-2.5 rounded-xl bg-[#F6F5F0] hover:bg-[#E2E2DC] border border-[#E2E2DC] text-[#55555B] hover:text-[#17171B] font-bold text-xs transition-colors font-title cursor-pointer"
+                        title="Salin Data Diagnostik Player">
+                        <i data-lucide="copy" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Below Video Player Ad Slot -->
+            {{$belowAd := getAdSlot "below_player"}}
+            {{if $belowAd}}
+            <div class="w-full my-1">
+                {{$belowAd}}
+            </div>
+            {{end}}
+
+            <!-- Anime Info Card -->
+            <div class="bg-white border border-[#E2E2DC] rounded-xl p-6 shadow-sm space-y-4">
+                <div class="flex flex-col sm:flex-row gap-6">
+                    <div class="w-36 sm:w-44 aspect-[3/4] rounded-lg overflow-hidden border border-[#E2E2DC] shrink-0">
+                        <img src="{{.Detail.Img}}" alt="{{.Detail.Title}}" class="w-full h-full object-cover" />
+                    </div>
+                    <div class="space-y-3 flex-1">
+                        <div class="flex flex-wrap gap-2">
+                            <span class="bg-[#FFCC00] text-[#17171B] font-bold text-xs px-2.5 py-0.5 rounded-md">
+                                {{if .Detail.Type}}{{.Detail.Type}}{{else}}TV ANIME{{end}}
+                            </span>
+                            <span
+                                class="bg-[#F6F5F0] border border-[#E2E2DC] text-[#1A1A1E] font-semibold text-xs px-2.5 py-0.5 rounded-md">
+                                {{if .Detail.Status}}{{.Detail.Status}}{{else}}Publishing{{end}}
+                            </span>
+                            {{if .Detail.Score}}
+                            <span
+                                class="bg-[#F6F5F0] border border-[#E2E2DC] text-[#1A1A1E] font-bold text-xs px-2.5 py-0.5 rounded-md flex items-center gap-1">
+                                ★ {{.Detail.Score}}
+                            </span>
+                            {{end}}
+                        </div>
+                        <h2 class="text-lg font-bold font-title text-[#1A1A1E]">{{.Detail.Title}}</h2>
+                        <div class="flex flex-wrap gap-1.5">
+                            {{range .Detail.Genres}}
+                            <a href="/genres/{{.ID}}"
+                                class="bg-[#F6F5F0] hover:bg-[#E2E2DC] border border-[#E2E2DC] text-[#55555B] hover:text-[#1A1A1E] text-xs px-2.5 py-1 rounded-lg transition-colors font-medium">
+                                {{.Title}}
+                            </a>
+                            {{end}}
+                        </div>
+                        <p class="text-xs text-[#55555B] leading-relaxed line-clamp-4">
+                            {{.Detail.Synopsis}}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Right Column: Episode Grid Sidebar & Recommendations (4/3 Cols) -->
+        <div class="lg:col-span-4 xl:col-span-3 space-y-4">
+
+            <!-- Card 1: Pilih Episode Lain -->
+            <div class="bg-white border border-[#E2E2DC] rounded-xl p-4 shadow-sm space-y-4">
+                <div class="flex items-center justify-between border-b border-[#E2E2DC] pb-3">
+                    <h3 class="font-title font-bold text-sm text-[#1A1A1E]">Pilih Episode Lain</h3>
+                    <span class="text-xs text-[#55555B] font-semibold">Total {{len .Detail.Episodes}} Episode</span>
+                </div>
+
+                <!-- Episode Grid (4 cols) -->
+                <div class="grid grid-cols-4 gap-2 max-h-64 overflow-y-auto pr-1 sidebar-episode-container">
+                    {{range .Detail.Episodes}}
+                    <button type="button"
+                        data-ep-num="{{.Number}}"
+                        data-detail-eps="{{.DetailEps}}"
+                        data-ep-title="{{.Title}}"
+                        onclick="switchEpisodeAjax(event, this); return false;"
+                        class="sidebar-ep-btn h-10 rounded-lg font-title font-bold text-xs flex items-center justify-center relative transition-all border cursor-pointer {{if eq .Number $.ActiveEpisodeNum}}bg-[#17171B] text-white border-[#17171B] shadow-sm ring-2 ring-[#17171B] active-ep-btn{{else}}bg-[#F6F5F0] hover:bg-[#E2E2DC] text-[#1A1A1E] border-[#E2E2DC]{{end}}">
+                        <span>{{.Number}}</span>
+                        <span class="ep-active-dot absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-[#FFCC00] {{if ne .Number $.ActiveEpisodeNum}}hidden{{end}}"></span>
+                    </button>
+                    {{end}}
+                </div>
+
+                <!-- Tips Box -->
+                <div
+                    class="bg-[#F6F5F0] border border-[#E2E2DC] p-3 rounded-lg text-xs text-[#55555B] leading-relaxed flex items-start gap-2">
+                    <span class="text-base shrink-0">💡</span>
+                    <span><strong>Tips:</strong> Episode 2 dan seterusnya siap ditonton langsung tanpa hambatan.</span>
+                </div>
+            </div>
+
+            <!-- Card 2: Tonton Anime Lain Tanpa Masalah -->
+            <div class="bg-white border border-[#E2E2DC] rounded-xl p-4 shadow-sm space-y-3">
+                <h3 class="font-title font-bold text-sm text-[#1A1A1E] border-b border-[#E2E2DC] pb-2">
+                    Tonton Anime Lain Tanpa Masalah
+                </h3>
+
+                <div class="space-y-2">
+                    {{range $idx, $anime := .Detail.Recommendations}}
+                    {{if lt $idx 4}}
+                    <a href="/anime/{{$anime.Slug}}"
+                        class="flex items-center justify-between p-2 rounded-lg hover:bg-[#F6F5F0] transition-colors group">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div
+                                class="w-10 h-10 rounded-lg bg-[#17171B] text-white flex items-center justify-center font-bold text-[10px] uppercase font-title shrink-0 overflow-hidden">
+                                {{if $anime.Img}}
+                                <img src="{{$anime.Img}}" alt="{{$anime.Title}}" class="w-full h-full object-cover" />
+                                {{else}}
+                                ANIME
+                                {{end}}
+                            </div>
+                            <div class="truncate">
+                                <h4
+                                    class="text-xs font-bold text-[#1A1A1E] truncate group-hover:text-[#FFCC00] transition-colors">
+                                    {{$anime.Title}}</h4>
+                                <span class="text-[11px] text-[#55555B]">Episode terbaru • Lancar</span>
+                            </div>
+                        </div>
+                        <i data-lucide="play"
+                            class="w-4 h-4 text-[#55555B] group-hover:text-[#1A1A1E] shrink-0 ml-2"></i>
+                    </a>
+                    {{end}}
+                    {{end}}
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Batch Download Section -->
+    {{if .BatchDownloads}}
+    <div class="bg-white border border-[#E2E2DC] rounded-xl p-6 shadow-sm space-y-4 mt-6">
+        <h3
+            class="text-base font-bold font-title text-[#1A1A1E] border-b border-[#E2E2DC] pb-3 flex items-center gap-2">
+            <i data-lucide="download" class="w-4 h-4 text-[#FFCC00]"></i> Download Batch Full Episode
+        </h3>
+        <div class="space-y-3">
+            {{range .BatchDownloads}}
+            <div class="bg-[#F6F5F0] border border-[#E2E2DC] rounded-lg p-3 space-y-2">
+                <span class="text-xs font-bold text-[#1A1A1E] uppercase">{{.Format}}</span>
+                <div class="space-y-1.5">
+                    {{range .List}}
+                    <div
+                        class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-white p-2 rounded border border-[#E2E2DC] text-xs">
+                        <span class="font-bold text-[#1A1A1E]">{{.Resolution}}</span>
+                        <div class="flex flex-wrap gap-1.5">
+                            {{range .Links}}
+                            <a href="{{.Link}}" target="_blank"
+                                class="px-2.5 py-1 bg-[#F6F5F0] hover:bg-[#FFCC00] text-[#1A1A1E] font-bold text-[11px] rounded border border-[#E2E2DC] transition-colors">
+                                {{.Title}}
+                            </a>
+                            {{end}}
+                        </div>
+                    </div>
+                    {{end}}
+                </div>
+            </div>
+            {{end}}
+        </div>
+    </div>
+    {{end}}
+
+</div>
+{{end}}
+
+{{define "inline_player_area"}}
+<style>
+    #player-iframe-container iframe,
+    #player-iframe-container video {
+        width: 100% !important;
+        height: 100% !important;
+        border: 0 !important;
+        display: block;
+    }
+
+    .art-video-player {
+        width: 100% !important;
+        height: 100% !important;
+        border-radius: 1rem !important;
+        background-color: #000 !important;
+        font-family: inherit !important;
+    }
+
+    /* Progress bar, played and buffer in Yellow #FFCC00 */
+    .art-video-player .art-progress-played {
+        background: #FFCC00 !important;
+    }
+    .art-video-player .art-progress-highlight {
+        background: rgba(255, 204, 0, 0.4) !important;
+    }
+    .art-video-player .art-progress-indicator {
+        background: #FFCC00 !important;
+        border: 2px solid #17171B !important;
+        box-shadow: 0 0 10px rgba(255, 204, 0, 0.9) !important;
+    }
+    .art-video-player .art-progress-tip {
+        background: #17171B !important;
+        color: #FFCC00 !important;
+        border: 1px solid #2B2B32 !important;
+        border-radius: 6px !important;
+        font-weight: bold !important;
+        font-size: 11px !important;
+    }
+
+    /* Volume Slider */
+    .art-video-player .art-volume-slider-handle {
+        background: #FFCC00 !important;
+    }
+    .art-video-player .art-volume-slider-played {
+        background: #FFCC00 !important;
+    }
+
+    /* Controls bar background & hover animations */
+    .art-video-player .art-bottom {
+        background: linear-gradient(transparent, rgba(10, 10, 12, 0.96)) !important;
+        padding-bottom: 6px !important;
+    }
+    .art-video-player .art-control-icon:hover {
+        color: #FFCC00 !important;
+        transform: scale(1.08);
+        transition: transform 0.15s ease, color 0.15s ease;
+    }
+
+    /* Loading Spinner with Yellow Glow */
+    .art-video-player .art-loading {
+        color: #FFCC00 !important;
+    }
+    .art-video-player .art-loading svg,
+    .art-video-player .art-loading-icon {
+        filter: drop-shadow(0 0 10px rgba(255, 204, 0, 0.8)) !important;
+        color: #FFCC00 !important;
+    }
+
+    /* Notice / Toast alert inside player */
+    .art-video-player .art-notice {
+        background: rgba(23, 23, 27, 0.95) !important;
+        border: 1px solid #FFCC00 !important;
+        color: #FFCC00 !important;
+        font-weight: 800 !important;
+        border-radius: 10px !important;
+        backdrop-filter: blur(8px) !important;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.5) !important;
+        font-size: 12px !important;
+    }
+
+    /* Settings / Quality Context Popup */
+    .art-video-player .art-setting-panel,
+    .art-video-player .art-contextmenu {
+        background: rgba(23, 23, 27, 0.96) !important;
+        border: 1px solid #2B2B32 !important;
+        border-radius: 12px !important;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.7) !important;
+        backdrop-filter: blur(12px) !important;
+        padding: 8px !important;
+        color: #E2E2DC !important;
+    }
+    .art-video-player .art-setting-header {
+        border-bottom: 1px solid #2B2B32 !important;
+        color: #A0A0A8 !important;
+        font-size: 10px !important;
+        font-weight: 800 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.05em !important;
+        padding: 6px 10px !important;
+    }
+    .art-video-player .art-setting-item {
+        border-radius: 8px !important;
+        padding: 6px 10px !important;
+        font-size: 12px !important;
+        font-weight: 600 !important;
+        transition: background 0.15s ease, color 0.15s ease !important;
+    }
+    .art-video-player .art-setting-item:hover,
+    .art-video-player .art-setting-item.art-current {
+        background: rgba(255, 204, 0, 0.15) !important;
+        color: #FFCC00 !important;
+        font-weight: 700 !important;
+    }
+    .art-video-player .art-setting-item.art-current .art-setting-item-right {
+        color: #FFCC00 !important;
+    }
+
+    /* Fullscreen Wrapper & Watermark Visibility Enforcement */
+    #nyamimo-player-wrapper:fullscreen,
+    #nyamimo-player-wrapper:-webkit-full-screen,
+    #nyamimo-player-wrapper:-moz-full-screen,
+    #nyamimo-player-wrapper.is-fullscreen {
+        width: 100vw !important;
+        height: 100vh !important;
+        max-width: 100vw !important;
+        max-height: 100vh !important;
+        border-radius: 0 !important;
+        border: none !important;
+        background-color: #000 !important;
+        z-index: 2147483640 !important;
+    }
+
+    #player-watermark-overlay {
+        z-index: 2147483647 !important;
+        pointer-events: none !important;
+        display: flex !important;
+        visibility: visible !important;
+    }
+
+    {{$useNyamimoPlayer := (siteConfig).BloggerPlayer.UseNyamimoPlayer}}
+    {{$bOffset := 45}}
+    {{$bFsOffset := 60}}
+    {{if not $useNyamimoPlayer}}
+        {{$bOffset = 0}}
+        {{$bFsOffset = 0}}
+    {{else}}
+        {{if (siteConfig).BloggerPlayer.BottomOffsetPx}}
+            {{$bOffset = (siteConfig).BloggerPlayer.BottomOffsetPx}}
+        {{end}}
+        {{if (siteConfig).BloggerPlayer.FullscreenOffsetPx}}
+            {{$bFsOffset = (siteConfig).BloggerPlayer.FullscreenOffsetPx}}
+        {{end}}
+    {{end}}
+
+    #player-iframe, #player-iframe-container iframe {
+        width: 100% !important;
+        height: 100% !important;
+        border: none !important;
+        pointer-events: auto !important;
+    }
+
+    {{if and $useNyamimoPlayer (gt $bOffset 0)}}
+    #player-iframe[src*="blogger.com"],
+    #player-iframe-container iframe[src*="blogger.com"] {
+        width: 100% !important;
+        height: calc(100% + {{$bOffset}}px) !important;
+        margin-bottom: -{{$bOffset}}px !important;
+    }
+    {{end}}
+
+    {{if and $useNyamimoPlayer (gt $bFsOffset 0)}}
+    #nyamimo-player-wrapper:fullscreen #player-iframe[src*="blogger.com"],
+    #nyamimo-player-wrapper:-webkit-full-screen #player-iframe[src*="blogger.com"],
+    #nyamimo-player-wrapper:-moz-full-screen #player-iframe[src*="blogger.com"],
+    #nyamimo-player-wrapper.is-fullscreen #player-iframe[src*="blogger.com"],
+    #nyamimo-player-wrapper:fullscreen #player-iframe-container iframe[src*="blogger.com"],
+    #nyamimo-player-wrapper:-webkit-full-screen #player-iframe-container iframe[src*="blogger.com"],
+    #nyamimo-player-wrapper:-moz-full-screen #player-iframe-container iframe[src*="blogger.com"],
+    #nyamimo-player-wrapper.is-fullscreen #player-iframe-container iframe[src*="blogger.com"],
+    :fullscreen #player-iframe[src*="blogger.com"],
+    :-webkit-full-screen #player-iframe[src*="blogger.com"],
+    :-moz-full-screen #player-iframe[src*="blogger.com"] {
+        width: 100% !important;
+        height: calc(100% + {{$bFsOffset}}px) !important;
+        margin-bottom: -{{$bFsOffset}}px !important;
+    }
+    {{end}}
+
+    #nyamimo-player-wrapper:fullscreen #player-watermark-overlay,
+    #nyamimo-player-wrapper:-webkit-full-screen #player-watermark-overlay,
+    #nyamimo-player-wrapper:-moz-full-screen #player-watermark-overlay,
+    #nyamimo-player-wrapper.is-fullscreen #player-watermark-overlay,
+    :fullscreen #player-watermark-overlay,
+    :-webkit-full-screen #player-watermark-overlay,
+    :-moz-full-screen #player-watermark-overlay {
+        z-index: 2147483647 !important;
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 0.9 !important;
+    }
+</style>
+<!-- Video Player Box Container (Black Background Neutral) -->
+<div id="nyamimo-player-wrapper"
+    class="relative w-full aspect-video rounded-2xl overflow-hidden bg-black border border-[#2B2B32] shadow-2xl select-none group flex flex-col justify-between cursor-pointer"
+    {{if $useNyamimoPlayer}}onmousemove="onPlayerMouseMove()" onmouseleave="onPlayerMouseLeave()"{{end}}>
+
+    <!-- Underlay: Native Video / Iframe (Cleanly clipped to hide default server bars) -->
+    <div id="player-iframe-container"
+        class="absolute inset-0 w-full h-full flex items-center justify-center bg-black overflow-hidden pointer-events-auto">
+        {{if .RawIframe}}
+        {{.RawIframe}}
+        {{else if .VideoURL}}
+        <iframe id="player-iframe" src="{{.VideoURL}}" class="w-full border-0 pointer-events-auto"
+            allowfullscreen="true" webkitallowfullscreen="true" mozallowfullscreen="true" onload="onPlayerIframeLoad()"
+            onerror="onPlayerIframeError()"
+            allow="fullscreen; autoplay; clipboard-write; encrypted-media; picture-in-picture; accelerometer; gyroscope"></iframe>
+        {{else}}
+        <div class="flex flex-col items-center justify-center p-8 text-center space-y-4 max-w-lg mx-auto">
+            <div class="w-14 h-14 rounded-2xl bg-[#212126] border border-[#2B2B32] flex items-center justify-center text-[#FFCC00] shadow-md">
+                <i data-lucide="tv" class="w-7 h-7"></i>
+            </div>
+            <div class="space-y-1">
+                <h3 class="text-base sm:text-lg font-bold font-title text-white">Memeriksa Server Video Streaming...</h3>
+                <p class="text-xs text-[#A0A0A8]">Sistem sedang memverifikasi server media terbaik untuk kamu.</p>
+            </div>
+            <button onclick="location.reload();" class="px-4 py-2 rounded-lg bg-[#FFCC00] text-[#17171B] font-bold text-xs">Muat Ulang Video</button>
+        </div>
+        {{end}}
+    </div>
+
+    {{if $useNyamimoPlayer}}
+    <!-- Double Click Ripple Overlay Indicator -->
+    <div id="seek-ripple-left" class="absolute left-8 top-1/2 -translate-y-1/2 px-4 py-2 rounded-full bg-black/70 backdrop-blur-md border border-[#FFCC00]/40 text-[#FFCC00] font-bold text-xs flex items-center gap-1.5 opacity-0 pointer-events-none transition-all duration-300 z-40">
+        <i data-lucide="rotate-ccw" class="w-4 h-4"></i> -10s
+    </div>
+    <div id="seek-ripple-right" class="absolute right-8 top-1/2 -translate-y-1/2 px-4 py-2 rounded-full bg-black/70 backdrop-blur-md border border-[#FFCC00]/40 text-[#FFCC00] font-bold text-xs flex items-center gap-1.5 opacity-0 pointer-events-none transition-all duration-300 z-40">
+        +10s <i data-lucide="rotate-cw" class="w-4 h-4"></i>
+    </div>
+
+    <!-- Transparent Click Surface to pass interactions to video -->
+    <div id="player-click-surface" class="absolute inset-0 z-20 pointer-events-none"></div>
+    {{end}}
+
+    <!-- Video Player Watermark Overlay (Positioned in 4 Corners with Fullscreen Support) -->
+    {{$wm := (siteConfig).Watermark}}
+    {{if $wm.Enabled}}
+    {{if $wm.ApplyToWeb}}
+    <div id="player-watermark-overlay" class="absolute pointer-events-none select-none transition-all
+        {{if eq $wm.Position "top-left"}}top-4 sm:top-6 left-4 sm:left-6{{else if eq $wm.Position "top-right"}}top-4 sm:top-6 right-4 sm:right-6{{else if eq $wm.Position "bottom-left"}}bottom-14 sm:bottom-16 left-4 sm:left-6{{else}}bottom-14 sm:bottom-16 right-4 sm:right-6{{end}}"
+        style="z-index: 9999; opacity: {{if $wm.Opacity}}{{$wm.Opacity}}{{else}}0.85{{end}};">
+        {{if eq $wm.Type "image"}}
+            {{if $wm.ImageURL}}
+            <img src="{{$wm.ImageURL}}" alt="Watermark" class="{{if eq $wm.Size "small"}}h-5 sm:h-7{{else if eq $wm.Size "large"}}h-10 sm:h-14{{else}}h-7 sm:h-10{{end}} object-contain drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)]" />
+            {{end}}
+        {{else}}
+            <div class="font-extrabold tracking-wider uppercase px-2.5 py-1 rounded bg-black/60 backdrop-blur-xs text-white border border-white/20 drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)] flex items-center gap-1.5 {{if eq $wm.Size "small"}}text-[10px] sm:text-xs{{else if eq $wm.Size "large"}}text-sm sm:text-base{{else}}text-xs sm:text-sm{{end}}">
+                <span class="w-2 h-2 rounded-full bg-[#FFCC00] shadow-[0_0_8px_#FFCC00]"></span>
+                <span>{{if $wm.Text}}{{$wm.Text}}{{else}}NYAMIMO{{end}}</span>
+            </div>
+        {{end}}
+    </div>
+    {{end}}
+    {{end}}
+
+    {{if $useNyamimoPlayer}}
+    <!-- ===== NYAMIMO CINEMATIC OVERLAY UI (Matches Screenshot 2) ===== -->
+    <div id="nyamimo-cinema-overlay"
+        class="absolute inset-0 z-30 flex flex-col justify-between pointer-events-none transition-opacity duration-300 opacity-100 p-3 sm:p-5">
+
+        <!-- Top Header Bar (Gradient Overlay) -->
+        <div class="flex items-center justify-between pointer-events-auto bg-gradient-to-b from-black/80 via-black/40 to-transparent -mx-3 -mt-3 sm:-mx-5 sm:-mt-5 p-3 sm:p-4 rounded-t-2xl">
+            <!-- Left: Play Icon + Anime Title & Episode -->
+            <div class="flex items-center gap-2.5 min-w-0 max-w-[70%]">
+                <div class="w-7 h-7 rounded-full bg-[#FFCC00]/20 border border-[#FFCC00]/50 flex items-center justify-center text-[#FFCC00] shrink-0 shadow">
+                    <i data-lucide="play" class="w-3.5 h-3.5 fill-current"></i>
+                </div>
+                <h3 id="overlay-ep-title" class="text-xs sm:text-sm font-bold font-title text-white truncate drop-shadow-md">
+                    Ep {{.ActiveEpisodeNum}} - {{.Detail.Title}}
+                </h3>
+            </div>
+
+            <!-- Right: Quality HD + Episode Playlist Drawer + Fullscreen -->
+            <div class="flex items-center gap-2">
+                <!-- Quality (HD) Dropdown Button -->
+                <div x-data="{ openQuality: false }" class="relative">
+                    <button @click.stop="openQuality = !openQuality"
+                        class="px-2.5 py-1 rounded-lg bg-black/60 hover:bg-[#FFCC00] text-white hover:text-[#17171B] border border-white/15 hover:border-[#FFCC00] font-bold font-title text-[11px] flex items-center gap-1.5 transition-all shadow-md backdrop-blur-md"
+                        title="Pilih Resolusi Video">
+                        <span class="px-1 py-0.5 rounded bg-[#FFCC00] text-[#17171B] font-extrabold text-[9px]">HD</span>
+                        <span id="active-quality-label">Auto</span>
+                        <i data-lucide="chevron-down" class="w-3 h-3"></i>
+                    </button>
+
+                    <!-- Quality Dropdown Panel -->
+                    <div x-show="openQuality" @click.away="openQuality = false" x-transition
+                        class="absolute right-0 top-full mt-2 w-44 bg-[#17171B]/95 border border-[#2B2B32] rounded-xl shadow-2xl p-1.5 z-50 text-xs space-y-0.5 backdrop-blur-xl font-title"
+                        style="display: none;">
+                        <div class="text-[9px] font-extrabold text-[#A0A0A8] px-2 py-1 uppercase tracking-wider">Pilih Kualitas</div>
+                        <button onclick="setPlayerQuality('Auto', 'Auto (Optimal)'); openQuality = false"
+                            class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-[#FFCC00] hover:text-[#17171B] text-white font-bold flex items-center justify-between transition-colors">
+                            <span>Auto (Optimal)</span>
+                            <span class="w-1.5 h-1.5 rounded-full bg-[#FFCC00]"></span>
+                        </button>
+                        <button onclick="setPlayerQuality('1080p', '1080p (Full HD)'); openQuality = false"
+                            class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-[#FFCC00] hover:text-[#17171B] text-white font-semibold transition-colors">1080p (Full HD)</button>
+                        <button onclick="setPlayerQuality('720p', '720p (HD)'); openQuality = false"
+                            class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-[#FFCC00] hover:text-[#17171B] text-white font-semibold transition-colors">720p (HD)</button>
+                        <button onclick="setPlayerQuality('480p', '480p (SD)'); openQuality = false"
+                            class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-[#FFCC00] hover:text-[#17171B] text-white font-semibold transition-colors">480p (SD)</button>
+                    </div>
+                </div>
+
+                <!-- Episode Playlist Quick Drawer Icon (☰) -->
+                <div x-data="{ openEpDrawer: false }" class="relative">
+                    <button @click.stop="openEpDrawer = !openEpDrawer"
+                        class="w-8 h-8 rounded-lg bg-black/60 hover:bg-[#FFCC00] text-white hover:text-[#17171B] border border-white/15 flex items-center justify-center transition-all shadow-md backdrop-blur-md"
+                        title="Daftar Episode">
+                        <i data-lucide="list-video" class="w-4 h-4"></i>
+                    </button>
+
+                    <!-- Quick Episode Grid Modal inside Video -->
+                    <div x-show="openEpDrawer" @click.away="openEpDrawer = false" x-transition
+                        class="absolute right-0 top-full mt-2 w-72 bg-[#17171B]/95 border border-[#2B2B32] rounded-2xl shadow-2xl p-3 z-50 backdrop-blur-2xl max-h-64 overflow-y-auto font-title space-y-2"
+                        style="display: none;">
+                        <div class="flex items-center justify-between border-b border-[#2B2B32] pb-2 text-xs font-bold text-white">
+                            <span>Pilih Episode</span>
+                            <span class="text-[10px] text-[#A0A0A8]">Total {{len .Detail.Episodes}} Ep</span>
+                        </div>
+                        <div class="grid grid-cols-4 gap-1.5">
+                            {{range .Detail.Episodes}}
+                            <button type="button"
+                                data-ep-num="{{.Number}}"
+                                data-detail-eps="{{.DetailEps}}"
+                                data-ep-title="{{.Title}}"
+                                onclick="switchEpisodeAjax(event, this); openEpDrawer = false; return false;"
+                                class="h-8 rounded-lg font-title font-bold text-xs flex items-center justify-center transition-all border {{if eq .Number $.ActiveEpisodeNum}}bg-[#FFCC00] text-[#17171B] border-[#FFCC00] shadow{{else}}bg-[#212126] hover:bg-[#2B2B32] text-white border-[#2B2B32]{{end}}">
+                                {{.Number}}
+                            </button>
+                            {{end}}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fullscreen Toggle Icon -->
+                <button onclick="toggleFullScreenPlayer()"
+                    class="w-8 h-8 rounded-lg bg-black/60 hover:bg-[#FFCC00] text-white hover:text-[#17171B] border border-white/15 flex items-center justify-center transition-all shadow-md backdrop-blur-md"
+                    title="Layar Penuh (F)">
+                    <i data-lucide="maximize" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Center Floating Action Area -->
+        <div class="pointer-events-none my-auto h-20"></div>
+
+        <!-- Bottom Control Bar (Timeline + Quick Bar) -->
+        <div class="pointer-events-auto bg-gradient-to-t from-black/95 via-black/60 to-transparent -mx-3 -mb-3 sm:-mx-5 sm:-mb-5 p-3 sm:p-4 rounded-b-2xl space-y-2">
+
+            <!-- Sleek Glowing Scrubber Bar -->
+            <div id="nyamimo-scrub-container" class="relative w-full h-4 flex items-center cursor-pointer group/scrub" onclick="onScrubBarClick(event)">
+                <div class="w-full h-1.5 group-hover/scrub:h-2 bg-white/20 rounded-full overflow-hidden transition-all relative">
+                    <!-- Buffer bar -->
+                    <div id="overlay-buffer-bar" class="absolute left-0 top-0 h-full bg-white/30 rounded-full transition-all" style="width: 45%;"></div>
+                    <!-- Played bar with Yellow Glow -->
+                    <div id="overlay-played-bar" class="absolute left-0 top-0 h-full bg-[#FFCC00] rounded-full shadow-[0_0_8px_#FFCC00] transition-all" style="width: 15%;"></div>
+                </div>
+                <!-- Glowing Thumb Dot -->
+                <div id="overlay-scrub-thumb"
+                    class="absolute w-3.5 h-3.5 rounded-full bg-[#FFCC00] border-2 border-[#17171B] shadow-[0_0_10px_#FFCC00] -translate-x-1/2 transition-transform scale-0 group-hover/scrub:scale-100"
+                    style="left: 15%;"></div>
+            </div>
+
+            <!-- Bottom Action Row (Speed + Skip OP + Timestamps + Fullscreen) -->
+            <div class="flex items-center justify-between text-xs text-[#E2E2DC] gap-2 flex-wrap sm:flex-nowrap">
+                <div class="flex items-center gap-2 sm:gap-3">
+                    <!-- Speed Dropdown -->
+                    <div x-data="{ openSpeed: false }" class="relative">
+                        <button @click.stop="openSpeed = !openSpeed"
+                            class="px-2 py-1 rounded-lg bg-black/50 hover:bg-[#FFCC00] text-white hover:text-[#17171B] border border-white/10 font-bold font-title text-[11px] flex items-center gap-1 transition-all"
+                            title="Kecepatan Pemutaran">
+                            <i data-lucide="gauge" class="w-3.5 h-3.5 text-[#FFCC00]"></i>
+                            <span id="active-speed-label">1.0x</span>
+                        </button>
+
+                        <div x-show="openSpeed" @click.away="openSpeed = false" x-transition
+                            class="absolute bottom-full left-0 mb-2 w-32 bg-[#17171B]/95 border border-[#2B2B32] rounded-xl shadow-2xl p-1.5 z-50 text-xs space-y-0.5 backdrop-blur-xl font-title"
+                            style="display: none;">
+                            <button onclick="setPlayerSpeed(0.5); openSpeed = false" class="w-full text-left px-2 py-1 rounded hover:bg-[#FFCC00] hover:text-[#17171B] text-white">0.5x</button>
+                            <button onclick="setPlayerSpeed(0.75); openSpeed = false" class="w-full text-left px-2 py-1 rounded hover:bg-[#FFCC00] hover:text-[#17171B] text-white">0.75x</button>
+                            <button onclick="setPlayerSpeed(1.0); openSpeed = false" class="w-full text-left px-2 py-1 rounded hover:bg-[#FFCC00] hover:text-[#17171B] text-white font-bold">1.0x (Normal)</button>
+                            <button onclick="setPlayerSpeed(1.25); openSpeed = false" class="w-full text-left px-2 py-1 rounded hover:bg-[#FFCC00] hover:text-[#17171B] text-white">1.25x</button>
+                            <button onclick="setPlayerSpeed(1.5); openSpeed = false" class="w-full text-left px-2 py-1 rounded hover:bg-[#FFCC00] hover:text-[#17171B] text-white">1.5x</button>
+                            <button onclick="setPlayerSpeed(2.0); openSpeed = false" class="w-full text-left px-2 py-1 rounded hover:bg-[#FFCC00] hover:text-[#17171B] text-white">2.0x</button>
+                        </div>
+                    </div>
+
+                    <!-- Skip Intro / Skip OP Button -->
+                    <button onclick="skipVideoIntro()"
+                        class="px-2.5 py-1 rounded-lg bg-[#FFCC00] hover:bg-[#E5B800] text-[#17171B] font-extrabold font-title text-[11px] flex items-center gap-1 shadow-md transition-all active:scale-95 cursor-pointer"
+                        title="Lewati Lagu Pembuka Anime (+85s)">
+                        <i data-lucide="fast-forward" class="w-3.5 h-3.5 fill-current"></i>
+                        <span>Skip OP (+85s)</span>
+                    </button>
+
+                    <!-- Timestamp Counter -->
+                    <div class="font-mono text-[11px] font-semibold text-[#A0A0A8] flex items-center gap-1">
+                        <span id="overlay-current-time" class="text-white font-bold">00:00</span>
+                        <span>/</span>
+                        <span id="overlay-total-time">24:00</span>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <!-- Theater Mode Toggle -->
+                    <button onclick="toggleTheaterMode()"
+                        class="w-7 h-7 rounded-lg bg-black/50 hover:bg-[#2B2B32] text-white flex items-center justify-center transition-colors"
+                        title="Mode Bioskop / Redupkan Layar">
+                        <i data-lucide="sun" class="w-3.5 h-3.5"></i>
+                    </button>
+
+                    <!-- Fullscreen Button -->
+                    <button onclick="toggleFullScreenPlayer()"
+                        class="px-2.5 py-1 rounded-lg bg-black/50 hover:bg-[#FFCC00] hover:text-[#17171B] text-white border border-white/10 font-bold font-title text-[11px] flex items-center gap-1.5 transition-all shadow"
+                        title="Layar Penuh (F)">
+                        <i data-lucide="maximize" class="w-3.5 h-3.5"></i>
+                        <span class="hidden sm:inline">Layar Penuh</span>
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    {{end}}
+</div>
+
+<!-- Hidden container to safely pass Go template variables to client-side JS -->
+<div id="nyamimo-anime-data"
+    data-slug="{{.Slug}}"
+    data-ep="{{.ActiveEpisodeNum}}"
+    data-title="{{.Detail.Title}}"
+    data-img="{{.Detail.Img}}"
+    data-ep-title="{{.ActiveEpisodeTitle}}"
+    style="display:none;"></div>
+
+<script>
+    if (window.lucide) lucide.createIcons();
+
+    // Episode & Anime Context safely retrieved from DOM attributes
+    var animeDataEl = document.getElementById('nyamimo-anime-data');
+    var currentAnimeSlug = (animeDataEl ? animeDataEl.getAttribute('data-slug') : '') || '';
+    var currentActiveEp = (animeDataEl ? animeDataEl.getAttribute('data-ep') : '1') || '1';
+    var currentAnimeTitle = (animeDataEl ? animeDataEl.getAttribute('data-title') : '') || '';
+    var currentAnimeImg = (animeDataEl ? animeDataEl.getAttribute('data-img') : '') || '';
+    var currentEpTitle = (animeDataEl ? animeDataEl.getAttribute('data-ep-title') : '') || '';
+
+    if (!currentAnimeSlug) {
+        var pathParts = window.location.pathname.split('/').filter(Boolean);
+        if (pathParts.length >= 2 && pathParts[0] === 'anime') {
+            currentAnimeSlug = pathParts[1];
+        }
+    }
+    if (!currentAnimeTitle) {
+        var h1 = document.querySelector('h1');
+        if (h1) currentAnimeTitle = h1.textContent.trim();
+    }
+    if (!currentAnimeImg) {
+        var poster = document.querySelector('img[alt*="' + currentAnimeSlug + '"]') || document.querySelector('img');
+        if (poster) currentAnimeImg = poster.src;
+    }
+
+    // Check if user should be redirected to last watched episode with timestamp, otherwise save watch history
+    (function () {
+        try {
+            var urlParams = new URLSearchParams(window.location.search);
+            var lastWatched = window.WatchHistory ? WatchHistory.getBySlug(currentAnimeSlug) : null;
+            if (!urlParams.has('ep') && !urlParams.has('first') && lastWatched) {
+                if (lastWatched.episodeNum && lastWatched.episodeNum !== currentActiveEp) {
+                    var targetUrl = '/anime/' + currentAnimeSlug + '/?ep=' + encodeURIComponent(lastWatched.episodeNum);
+                    if (lastWatched.time > 5) {
+                        targetUrl += '&t=' + encodeURIComponent(lastWatched.time);
+                    }
+                    window.location.replace(targetUrl);
+                    return;
+                }
+            }
+
+            // Record this watch into WatchHistory (works for guests & logged in users)
+            if (currentAnimeSlug) {
+                var initialTime = urlParams.has('t') ? parseFloat(urlParams.get('t')) : (lastWatched && lastWatched.episodeNum === currentActiveEp ? lastWatched.time : 0);
+                if (window.WatchHistory) {
+                    WatchHistory.add({
+                        slug: currentAnimeSlug,
+                        title: currentAnimeTitle,
+                        img: currentAnimeImg,
+                        episode: 'Episode ' + currentActiveEp,
+                        episodeNum: currentActiveEp,
+                        episodeTitle: currentEpTitle,
+                        time: initialTime || 0,
+                        link: '/anime/' + currentAnimeSlug + '/?ep=' + encodeURIComponent(currentActiveEp) + (initialTime > 5 ? ('&t=' + Math.floor(initialTime)) : '')
+                    });
+                }
+            }
+        } catch (e) {
+            console.error('History record error:', e);
+        }
+    })();
+
+    window.currentEpisodeServers = [
+        {{ range .Videos }}
+        { id: "{{.ID}}", title: "{{.Title}}", videoPath: "{{.Video}}" },
+        {{ end }}
+    ];
+    window.activeServerIdx = 0;
+    window.serverWatchdogTimer = null;
+    window.serverSwitchPendingTimer = null;
+    // Load Auto Switch Server preference from localStorage & backend (default: OFF)
+    (function () {
+        const saved = localStorage.getItem('nyamimo_auto_switch_server');
+        let isEnabled = false;
+        if (saved !== null) {
+            isEnabled = saved === 'true';
+        } else {
+            isEnabled = {{if .AutoSwitchServer}}true{{else}}false{{end}};
+        }
+        window.autoSwitchServerEnabled = isEnabled;
+
+        // Apply saved state to UI on load
+        const toggle = document.getElementById('auto-switch-toggle');
+        const statusEl = document.getElementById('auto-switch-status');
+        if (toggle) toggle.checked = isEnabled;
+        if (statusEl) {
+            statusEl.textContent = isEnabled ? 'ON' : 'OFF';
+            statusEl.className = isEnabled
+                ? 'text-[10px] px-1.5 py-0.5 rounded bg-[#FFCC00] text-[#17171B] font-extrabold font-title'
+                : 'text-[10px] px-1.5 py-0.5 rounded bg-[#E2E2DC] text-[#55555B] font-extrabold font-title';
+        }
+    })();
+    window.activeArtplayerInstance = null;
+
+    var lastPlaybackSaveTimestamp = 0;
+    function savePlaybackProgress(currentTime, duration) {
+        if (!currentTime || currentTime < 2 || !currentAnimeSlug) return;
+        var now = Date.now();
+        if (now - lastPlaybackSaveTimestamp > 2500) {
+            lastPlaybackSaveTimestamp = now;
+            if (window.WatchHistory) {
+                WatchHistory.add({
+                    slug: currentAnimeSlug,
+                    title: currentAnimeTitle,
+                    img: currentAnimeImg,
+                    episode: 'Episode ' + currentActiveEp,
+                    episodeNum: currentActiveEp,
+                    episodeTitle: currentEpTitle,
+                    time: currentTime,
+                    duration: duration
+                });
+            }
+        }
+    }
+
+    // Interval to track progress from any native video elements
+    if (window.nyamimoProgressTimer) clearInterval(window.nyamimoProgressTimer);
+    window.nyamimoProgressTimer = setInterval(function() {
+        var vid = document.querySelector('#player-iframe-container video');
+        if (vid && !vid.paused && vid.currentTime > 2) {
+            savePlaybackProgress(vid.currentTime, vid.duration);
+        }
+    }, 3000);
+
+    function fallbackToIframe(container, videoUrl, rawHtml) {
+        var overlay = document.getElementById('nyamimo-cinema-overlay');
+        var clickSurface = document.getElementById('player-click-surface');
+        if (clickSurface) clickSurface.style.display = 'block';
+        if (overlay) {
+            overlay.style.display = 'flex';
+            overlay.style.opacity = '1';
+        }
+
+        var existingIframe = container.querySelector('iframe');
+        if (existingIframe && videoUrl && existingIframe.src === videoUrl) {
+            if (window.lucide) lucide.createIcons();
+            return;
+        }
+
+        if (rawHtml && rawHtml.trim() !== '' && rawHtml.includes('<iframe')) {
+            container.innerHTML = rawHtml;
+        } else if (videoUrl && videoUrl.trim() !== '') {
+            var iframeStyle = 'height: 100%; width: 100%;';
+            if (videoUrl.includes('blogger.com')) {
+                iframeStyle = 'height: calc(100% + 95px); margin-bottom: -95px;';
+            }
+            container.innerHTML = '<iframe id="player-iframe" src="' + videoUrl + '" class="w-full h-full border-0 pointer-events-auto" style="' + iframeStyle + '" allowfullscreen="true" webkitallowfullscreen="true" mozallowfullscreen="true" onload="onPlayerIframeLoad()" onerror="onPlayerIframeError()" allow="fullscreen; autoplay; clipboard-write; encrypted-media; picture-in-picture; accelerometer; gyroscope"></iframe>';
+        } else {
+            container.innerHTML = '<div class="flex flex-col items-center justify-center p-8 text-center space-y-4 max-w-lg mx-auto"><div class="w-14 h-14 rounded-2xl bg-[#212126] border border-[#2B2B32] flex items-center justify-center text-[#FFCC00] shadow-md"><i data-lucide="tv" class="w-7 h-7"></i></div><div class="space-y-1"><h3 class="text-base sm:text-lg font-bold font-title text-white">Video Sedang Diproses</h3><p class="text-xs text-[#A0A0A8]">Silakan pilih server alternatif di bawah.</p></div></div>';
+        }
+        if (window.lucide) lucide.createIcons();
+    }
+
+    // Pre-roll Video Ad Config (YouTube Style)
+    window.NYAMIMO_VIDEO_AD = {
+        enabled: {{if (siteConfig).Ads.VideoPreroll.Enabled}}true{{else}}false{{end}},
+        videoUrl: "{{(siteConfig).Ads.VideoPreroll.VideoURL}}",
+        targetLink: "{{(siteConfig).Ads.VideoPreroll.TargetLink}}",
+        duration: {{if (siteConfig).Ads.VideoPreroll.DurationSeconds}}{{(siteConfig).Ads.VideoPreroll.DurationSeconds}}{{else}}15{{end}},
+        skipAfter: {{if (siteConfig).Ads.VideoPreroll.SkipAfterSeconds}}{{(siteConfig).Ads.VideoPreroll.SkipAfterSeconds}}{{else}}5{{end}}
+    };
+
+    function renderPrerollAdOverlay(container, onComplete) {
+        if (!window.NYAMIMO_VIDEO_AD || !window.NYAMIMO_VIDEO_AD.enabled || !window.NYAMIMO_VIDEO_AD.videoUrl || window._prerollAdShown) {
+            onComplete();
+            return;
+        }
+
+        window._prerollAdShown = true;
+        var adConfig = window.NYAMIMO_VIDEO_AD;
+        var skipWait = parseInt(adConfig.skipAfter) || 5;
+
+        container.innerHTML = '<div id="nyamimo-preroll-box" class="relative w-full h-full bg-black flex items-center justify-center overflow-hidden select-none">' +
+            '<video id="nyamimo-ad-video" src="' + adConfig.videoUrl + '" autoplay playsinline class="w-full h-full object-contain cursor-pointer"></video>' +
+            '<div class="absolute top-3 left-3 right-3 flex items-center justify-between pointer-events-none z-30">' +
+                '<div class="flex items-center gap-2 bg-black/80 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 pointer-events-auto">' +
+                    '<span class="w-2 h-2 rounded-full bg-[#FFCC00] animate-pulse"></span>' +
+                    '<span class="text-[11px] font-extrabold text-[#FFCC00] tracking-wider uppercase font-title">IKLAN</span>' +
+                    '<span class="text-[11px] text-gray-300 font-medium">• 1 dari 1</span>' +
+                '</div>' +
+                (adConfig.targetLink ? '<a href="' + adConfig.targetLink + '" target="_blank" rel="noopener noreferrer" class="flex items-center gap-1.5 bg-[#FFCC00] hover:bg-[#e6b800] text-[#17171B] font-extrabold text-xs px-3 py-1.5 rounded-full shadow-lg transition-transform hover:scale-105 pointer-events-auto font-title"><span>Kunjungi Pengiklan</span><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg></a>' : '') +
+            '</div>' +
+            '<div class="absolute bottom-4 right-4 z-30 flex items-center gap-2">' +
+                '<button id="nyamimo-skip-btn" disabled class="px-4 py-2 rounded-xl bg-black/75 backdrop-blur-md border border-white/20 text-gray-300 font-extrabold text-xs flex items-center gap-2 font-title transition-all duration-300 cursor-not-allowed">' +
+                    '<span id="nyamimo-skip-txt">Lewati Iklan dalam ' + skipWait + 's</span>' +
+                '</button>' +
+            '</div>' +
+            '<div class="absolute bottom-4 left-4 z-30 flex items-center gap-2">' +
+                '<button id="nyamimo-sound-toggle" class="p-2 rounded-full bg-black/75 backdrop-blur-md text-white border border-white/20 text-xs hover:bg-[#FFCC00] hover:text-[#17171B] transition-colors">' +
+                    '🔊' +
+                '</button>' +
+            '</div>' +
+        '</div>';
+
+        var adVideo = document.getElementById('nyamimo-ad-video');
+        var skipBtn = document.getElementById('nyamimo-skip-btn');
+        var skipTxt = document.getElementById('nyamimo-skip-txt');
+        var soundToggle = document.getElementById('nyamimo-sound-toggle');
+        var isDone = false;
+
+        function finishAd() {
+            if (isDone) return;
+            isDone = true;
+            if (adVideo) {
+                adVideo.pause();
+                adVideo.src = '';
+            }
+            onComplete();
+        }
+
+        if (adVideo && adConfig.targetLink) {
+            adVideo.onclick = function() {
+                window.open(adConfig.targetLink, '_blank');
+            };
+        }
+
+        if (soundToggle && adVideo) {
+            soundToggle.onclick = function() {
+                adVideo.muted = !adVideo.muted;
+                soundToggle.innerText = adVideo.muted ? '🔇' : '🔊';
+            };
+        }
+
+        var timeLeft = skipWait;
+        var timer = setInterval(function() {
+            if (isDone) {
+                clearInterval(timer);
+                return;
+            }
+            if (adVideo && !adVideo.paused) {
+                timeLeft--;
+            }
+            if (timeLeft <= 0) {
+                clearInterval(timer);
+                if (skipBtn) {
+                    skipBtn.disabled = false;
+                    skipBtn.className = "px-4 py-2 rounded-xl bg-[#FFCC00] hover:bg-[#e6b800] text-[#17171B] font-extrabold text-xs flex items-center gap-1.5 font-title shadow-xl cursor-pointer hover:scale-105 transition-all";
+                    skipBtn.innerHTML = '<span>Lewati Iklan</span> <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path></svg>';
+                    skipBtn.onclick = finishAd;
+                }
+            } else if (skipTxt) {
+                skipTxt.innerText = 'Lewati Iklan dalam ' + timeLeft + 's';
+            }
+        }, 1000);
+
+        if (adVideo) {
+            adVideo.onended = finishAd;
+            adVideo.onerror = finishAd;
+            adVideo.play().catch(function() {
+                adVideo.muted = true;
+                if (soundToggle) soundToggle.innerText = '🔇';
+                adVideo.play().catch(finishAd);
+            });
+        } else {
+            finishAd();
+        }
+    }
+
+    function initHybridPlayer(videoUrl, rawHtml) {
+        var container = document.getElementById('player-iframe-container');
+        if (!container) return;
+
+        // Run Pre-roll Ad first if enabled
+        renderPrerollAdOverlay(container, function() {
+            startActualPlayer(videoUrl, rawHtml);
+        });
+    }
+
+    function startActualPlayer(videoUrl, rawHtml) {
+        var container = document.getElementById('player-iframe-container');
+        if (!container) return;
+
+        // Destroy previous Artplayer instance to free memory & audio
+        if (window.activeArtplayerInstance && typeof window.activeArtplayerInstance.destroy === 'function') {
+            try {
+                window.activeArtplayerInstance.destroy(false);
+            } catch (e) {
+                console.warn('Destroy Artplayer err:', e);
+            }
+            window.activeArtplayerInstance = null;
+        }
+
+        // Direct media detection: ONLY pure video streams (.mp4, .m3u8, pixeldrain direct file, direct CDN)
+        var combined = ((videoUrl || '') + ' ' + (rawHtml || '')).toLowerCase();
+        var isEmbedWrapper = combined.includes('/api/proxy-player') || combined.includes('blogger.com') || combined.includes('wibufile.com/embed') || combined.includes('vidhide') || combined.includes('<iframe') || combined.includes('desustream') || combined.includes('streamwish') || combined.includes('filelions');
+
+        var isDirect = false;
+        var directUrl = '';
+
+        if (!isEmbedWrapper) {
+            if (combined.includes('.m3u8') || (videoUrl && (videoUrl.includes('.mp4') || videoUrl.includes('/api/v1/stream') || videoUrl.includes('stream/play') || videoUrl.includes('googlevideo.com')))) {
+                directUrl = videoUrl;
+                isDirect = true;
+            }
+        }
+
+        if (isDirect && directUrl && window.Artplayer) {
+            var overlay = document.getElementById('nyamimo-cinema-overlay');
+            var clickSurface = document.getElementById('player-click-surface');
+            if (overlay) overlay.style.display = 'none';
+            if (clickSurface) clickSurface.style.display = 'none';
+
+            // Build dynamic Quality Menu matching screenshot
+            var qualityList = [];
+            var serverBtns = document.querySelectorAll('.server-btn');
+            if (serverBtns && serverBtns.length > 0) {
+                serverBtns.forEach(function(btn, idx) {
+                    var qTitle = btn.getAttribute('data-video-title') || btn.innerText.trim();
+                    var qPath = btn.getAttribute('data-video-path') || '';
+                    var isCurrent = btn.classList.contains('active-server') || idx === 0;
+                    var displayHtml = qTitle;
+                    if (idx === 0 || qTitle.toLowerCase().includes('auto') || qTitle.toLowerCase().includes('optimal') || qTitle.toLowerCase().includes('720p')) {
+                        displayHtml = qTitle + ' <span style="background:#FFCC00;color:#17171B;font-size:9px;font-weight:bold;padding:1px 6px;border-radius:4px;margin-left:6px;">Rekomendasi</span>';
+                    }
+                    qualityList.push({
+                        default: isCurrent,
+                        html: displayHtml,
+                        url: directUrl,
+                        title: qTitle,
+                        path: qPath
+                    });
+                });
+            }
+            if (qualityList.length === 0) {
+                qualityList = [
+                    { default: true, html: 'Auto (Optimal) <span style="background:#FFCC00;color:#17171B;font-size:9px;font-weight:bold;padding:1px 6px;border-radius:4px;margin-left:6px;">Rekomendasi</span>', url: directUrl, title: 'Auto (Optimal)' },
+                    { default: false, html: '1080p (Full HD)', url: directUrl, title: '1080p (Full HD)' },
+                    { default: false, html: '720p (HD)', url: directUrl, title: '720p (HD)' },
+                    { default: false, html: '480p (SD)', url: directUrl, title: '480p (SD)' }
+                ];
+            }
+
+            container.innerHTML = '<div id="nyamimo-artplayer" class="w-full h-full"></div>';
+            try {
+                window.activeArtplayerInstance = new Artplayer({
+                    container: '#nyamimo-artplayer',
+                    url: directUrl,
+                    type: (directUrl.includes('.m3u8') ? 'm3u8' : 'mp4'),
+                    customType: {
+                        m3u8: function (video, url, art) {
+                            if (window.Hls && Hls.isSupported()) {
+                                if (art.hls) art.hls.destroy();
+                                const hls = new Hls();
+                                hls.loadSource(url);
+                                hls.attachMedia(video);
+                                art.hls = hls;
+                                art.on('destroy', () => hls.destroy());
+                            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                                video.src = url;
+                            } else {
+                                art.notice.show = 'Format HLS tidak didukung browser ini';
+                            }
+                        },
+                    },
+                    subtitle: {
+                        url: '/api/v1/subtitle?lang=id&slug=' + encodeURIComponent('{{.Slug}}') + '&ep=' + encodeURIComponent('{{.ActiveEpisodeNum}}'),
+                        type: 'vtt',
+                        style: {
+                            color: '#FFFFFF',
+                            fontSize: '20px',
+                            textShadow: '0 2px 4px rgba(0,0,0,0.9), 0 0 3px #000',
+                            fontWeight: 'bold',
+                            marginBottom: '22px',
+                        },
+                        encoding: 'utf-8',
+                        escape: true,
+                    },
+                    theme: '#FFCC00',
+                    volume: 0.8,
+                    isLive: false,
+                    muted: false,
+                    autoplay: true,
+                    pip: true,
+                    autoSize: true,
+                    autoMini: true,
+                    screenshot: true,
+                    setting: true,
+                    loop: false,
+                    flip: true,
+                    playbackRate: true,
+                    aspectRatio: true,
+                    fullscreen: true,
+                    fullscreenWeb: true,
+                    hotkey: true,
+                    quality: qualityList,
+                    {{$wm := (siteConfig).Watermark}}
+                    {{if and $wm.Enabled $wm.ApplyToWeb}}
+                    layers: [
+                        {
+                            name: 'nyamimo-watermark',
+                            html: `{{if eq $wm.Type "image"}}{{if $wm.ImageURL}}<img src="{{$wm.ImageURL}}" alt="Watermark" style="{{if eq $wm.Size "small"}}height:22px;{{else if eq $wm.Size "large"}}height:48px;{{else}}height:34px;{{end}} max-width:180px; object-fit:contain; filter:drop-shadow(0 2px 6px rgba(0,0,0,0.9));" />{{end}}{{else}}<div style="font-weight:800;letter-spacing:0.05em;text-transform:uppercase;padding:4px 10px;border-radius:6px;background:rgba(0,0,0,0.65);backdrop-filter:blur(4px);color:#fff;border:1px solid rgba(255,255,255,0.25);display:flex;align-items:center;gap:6px;font-size:{{if eq $wm.Size "small"}}11px{{else if eq $wm.Size "large"}}15px{{else}}13px{{end}};box-shadow:0 2px 8px rgba(0,0,0,0.8);"><span style="width:8px;height:8px;border-radius:50%;background:#FFCC00;box-shadow:0 0 8px #FFCC00;display:inline-block;"></span><span>{{if $wm.Text}}{{$wm.Text}}{{else}}NYAMIMO{{end}}</span></div>{{end}}`,
+                            style: {
+                                position: 'absolute',
+                                {{if eq $wm.Position "top-left"}}top: '20px', left: '20px'{{else if eq $wm.Position "top-right"}}top: '20px', right: '20px'{{else if eq $wm.Position "bottom-left"}}bottom: '55px', left: '20px'{{else}}bottom: '55px', right: '20px'{{end}},
+                                opacity: '{{if $wm.Opacity}}{{$wm.Opacity}}{{else}}0.85{{end}}',
+                                pointerEvents: 'none',
+                                zIndex: '999999'
+                            }
+                        }
+                    ],
+                    {{end}}
+                    controls: [
+                        {
+                            name: 'skip-intro-art',
+                            position: 'right',
+                            html: '<button class="px-2.5 py-1 rounded bg-[#FFCC00] text-[#17171B] font-extrabold text-xs font-title flex items-center gap-1 shadow hover:brightness-110 cursor-pointer">⏩ +85s</button>',
+                            tooltip: 'Lewati Intro (+85s)',
+                            click: function (art) {
+                                art.currentTime += 85;
+                                art.notice.show = '⏩ Intro dilewati (+85s)';
+                            },
+                        },
+                    ],
+                });
+
+                window.activeArtplayerInstance.on('ready', () => {
+                    var urlParams = new URLSearchParams(window.location.search);
+                    var targetSeekTime = urlParams.has('t') ? (parseFloat(urlParams.get('t')) || 0) : 0;
+                    if (targetSeekTime > 5) {
+                        window.activeArtplayerInstance.currentTime = targetSeekTime;
+                        var formattedTime = window.formatWatchTime ? formatWatchTime(targetSeekTime) : (targetSeekTime + 's');
+                        window.activeArtplayerInstance.notice.show = '⏩ Melanjutkan dari menit ' + formattedTime;
+                    }
+                    if (window.serverWatchdogTimer) clearTimeout(window.serverWatchdogTimer);
+                    hideServerToast();
+                });
+
+                window.activeArtplayerInstance.on('quality', (item) => {
+                    if (item && item.path) {
+                        var targetBtn = document.querySelector(`.server-btn[data-video-path="${item.path}"]`);
+                        if (targetBtn) {
+                            targetBtn.click();
+                        }
+                    }
+                    if (window.activeArtplayerInstance) {
+                        window.activeArtplayerInstance.notice.show = 'Resolusi: ' + (item.title || item.html.replace(/<[^>]*>/g, ''));
+                    }
+                });
+
+                window.activeArtplayerInstance.on('video:timeupdate', () => {
+                    if (window.activeArtplayerInstance) {
+                        savePlaybackProgress(window.activeArtplayerInstance.currentTime, window.activeArtplayerInstance.duration);
+                    }
+                });
+
+                window.activeArtplayerInstance.on('error', (err) => {
+                    console.warn('Artplayer stream error, attempting fallback/autoswitch:', err);
+                    if (window.handleServerFailure) {
+                        window.handleServerFailure();
+                    } else {
+                        fallbackToIframe(container, videoUrl, rawHtml);
+                    }
+                });
+
+                return;
+            } catch (e) {
+                console.error('Artplayer init failed, fallback:', e);
+            }
+        }
+
+        // Non-direct embed fallback / Proxied Player
+        var overlay = document.getElementById('nyamimo-cinema-overlay');
+        var clickSurface = document.getElementById('player-click-surface');
+        if (clickSurface) clickSurface.style.display = 'block';
+        if (overlay) {
+            overlay.style.display = 'flex';
+            overlay.style.opacity = '1';
+        }
+        fallbackToIframe(container, videoUrl, rawHtml);
+    }
+
+    // ===== NYAMIMO CINEMA OVERLAY INTERACTION CONTROLLER =====
+    var playerHideControlsTimer = null;
+    var isVideoPaused = false;
+    var currentPlayTime = 0;
+    var currentTotalDuration = 1440; // Default 24 mins
+    var lastSurfaceClickTime = 0;
+    var isScrubDragging = false;
+
+    function getIframeVideo() {
+        try {
+            var ifr = document.querySelector('#player-iframe-container iframe');
+            if (ifr && ifr.contentDocument) {
+                var v = ifr.contentDocument.querySelector('video');
+                if (v) return v;
+            }
+        } catch(e) {}
+        return document.querySelector('#player-iframe-container video');
+    }
+
+    function sendIframeCommand(cmd, arg) {
+        var vid = getIframeVideo();
+        if (vid) {
+            try {
+                if (cmd === 'play') {
+                    vid.play().catch(function(){});
+                } else if (cmd === 'pause') {
+                    vid.pause();
+                } else if (cmd === 'toggle') {
+                    if (vid.paused) vid.play().catch(function(){}); else vid.pause();
+                } else if (cmd === 'seek') {
+                    vid.currentTime = Math.max(0, Math.min(vid.duration || currentTotalDuration, arg));
+                } else if (cmd === 'rate') {
+                    vid.playbackRate = arg;
+                }
+            } catch(e) {}
+        }
+        if (window.activeArtplayerInstance) {
+            try {
+                if (cmd === 'play') window.activeArtplayerInstance.play();
+                else if (cmd === 'pause') window.activeArtplayerInstance.pause();
+                else if (cmd === 'toggle') window.activeArtplayerInstance.toggle();
+                else if (cmd === 'seek') window.activeArtplayerInstance.currentTime = arg;
+                else if (cmd === 'rate') window.activeArtplayerInstance.playbackRate = arg;
+            } catch(e) {}
+        }
+        try {
+            var ifr = document.querySelector('#player-iframe-container iframe');
+            if (ifr && ifr.contentWindow) {
+                if (cmd === 'play') ifr.contentWindow.postMessage({ type: 'nyamimo-play' }, '*');
+                else if (cmd === 'pause') ifr.contentWindow.postMessage({ type: 'nyamimo-pause' }, '*');
+                else if (cmd === 'toggle') ifr.contentWindow.postMessage({ type: 'nyamimo-toggle' }, '*');
+                else if (cmd === 'seek') ifr.contentWindow.postMessage({ type: 'nyamimo-seek', time: arg }, '*');
+                else if (cmd === 'rate') ifr.contentWindow.postMessage({ type: 'nyamimo-rate', speed: arg }, '*');
+            }
+        } catch(e) {}
+    }
+
+    function formatTimeDisplay(sec) {
+        if (isNaN(sec) || sec < 0) sec = 0;
+        sec = Math.floor(sec);
+        var h = Math.floor(sec / 3600);
+        var m = Math.floor((sec % 3600) / 60);
+        var s = Math.floor(sec % 60);
+        if (h > 0) {
+            return (h < 10 ? '0' : '') + h + ':' + (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+        }
+        return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+    }
+
+    function updateTimelineUI(currentTime, duration) {
+        if (typeof currentTime === 'number' && !isNaN(currentTime)) currentPlayTime = currentTime;
+        if (typeof duration === 'number' && !isNaN(duration) && duration > 10) currentTotalDuration = duration;
+
+        var curEl = document.getElementById('overlay-current-time');
+        var totEl = document.getElementById('overlay-total-time');
+        var playedBar = document.getElementById('overlay-played-bar');
+        var scrubThumb = document.getElementById('overlay-scrub-thumb');
+
+        if (curEl) curEl.textContent = formatTimeDisplay(currentPlayTime);
+        if (totEl) totEl.textContent = formatTimeDisplay(currentTotalDuration);
+
+        var pct = Math.min(100, Math.max(0, (currentPlayTime / currentTotalDuration) * 100));
+        if (playedBar) playedBar.style.width = pct + '%';
+        if (scrubThumb) scrubThumb.style.left = pct + '%';
+    }
+
+    function handleScrubAtPoint(clientX) {
+        var container = document.getElementById('nyamimo-scrub-container');
+        if (!container) return;
+        var rect = container.getBoundingClientRect();
+        var clickX = Math.max(0, Math.min(clientX - rect.left, rect.width));
+        var pct = clickX / rect.width;
+        var targetSec = Math.max(0, Math.min(currentTotalDuration, pct * currentTotalDuration));
+        currentPlayTime = targetSec;
+        updateTimelineUI(targetSec, currentTotalDuration);
+        sendIframeCommand('seek', targetSec);
+    }
+
+    function onScrubBarClick(e) {
+        handleScrubAtPoint(e.clientX);
+        showServerToast('⏩ Loncat ke ' + formatTimeDisplay(currentPlayTime));
+        setTimeout(hideServerToast, 1200);
+    }
+
+    // Initialize Interactive Scrub Dragging
+    (function initScrubberDrag() {
+        window.addEventListener('mousemove', function(e) {
+            if (isScrubDragging) {
+                handleScrubAtPoint(e.clientX);
+            }
+        });
+        window.addEventListener('mouseup', function(e) {
+            if (isScrubDragging) {
+                isScrubDragging = false;
+                handleScrubAtPoint(e.clientX);
+            }
+        });
+        window.addEventListener('touchmove', function(e) {
+            if (isScrubDragging && e.touches && e.touches[0]) {
+                handleScrubAtPoint(e.touches[0].clientX);
+            }
+        }, { passive: true });
+        window.addEventListener('touchend', function() {
+            isScrubDragging = false;
+        });
+    })();
+
+    function onPlayerMouseMove() {
+        var overlay = document.getElementById('nyamimo-cinema-overlay');
+        if (!overlay) return;
+        overlay.style.opacity = '1';
+        var wrapper = document.getElementById('nyamimo-player-wrapper');
+        if (wrapper) wrapper.style.cursor = 'default';
+
+        if (playerHideControlsTimer) clearTimeout(playerHideControlsTimer);
+        if (!isVideoPaused) {
+            playerHideControlsTimer = setTimeout(function() {
+                if (!isVideoPaused) {
+                    overlay.style.opacity = '0';
+                    if (wrapper) wrapper.style.cursor = 'none';
+                }
+            }, 2800);
+        }
+    }
+
+    function onPlayerMouseLeave() {
+        if (!isVideoPaused) {
+            var overlay = document.getElementById('nyamimo-cinema-overlay');
+            if (overlay) {
+                overlay.style.opacity = '0';
+            }
+        }
+    }
+
+    function onPlayerSurfaceClick(e) {
+        var now = Date.now();
+        if (now - lastSurfaceClickTime < 300) return;
+        lastSurfaceClickTime = now;
+        setTimeout(function() {
+            if (Date.now() - lastSurfaceClickTime >= 280) {
+                togglePlayPause();
+            }
+        }, 280);
+    }
+
+    function onPlayerSurfaceDblClick(e) {
+        lastSurfaceClickTime = Date.now() + 1000;
+        var wrapper = document.getElementById('nyamimo-player-wrapper');
+        if (!wrapper) return;
+        var rect = wrapper.getBoundingClientRect();
+        var clickX = e.clientX - rect.left;
+        if (clickX < rect.width / 2) {
+            seekVideo(-10);
+            showRipple('left');
+        } else {
+            seekVideo(10);
+            showRipple('right');
+        }
+    }
+
+    function showRipple(dir) {
+        var rip = document.getElementById(dir === 'left' ? 'seek-ripple-left' : 'seek-ripple-right');
+        if (rip) {
+            rip.style.opacity = '1';
+            rip.style.transform = 'translateY(-50%) scale(1.1)';
+            setTimeout(function() {
+                rip.style.opacity = '0';
+                rip.style.transform = 'translateY(-50%) scale(1)';
+            }, 600);
+        }
+    }
+
+    function updatePlayPauseIcon(paused) {
+        isVideoPaused = paused;
+        var iconEl = document.getElementById('overlay-play-icon');
+        if (iconEl) {
+            iconEl.setAttribute('data-lucide', paused ? 'play' : 'pause');
+            if (window.lucide) lucide.createIcons();
+        }
+        var overlay = document.getElementById('nyamimo-cinema-overlay');
+        if (paused && overlay) {
+            overlay.style.opacity = '1';
+        }
+    }
+
+    function togglePlayPause() {
+        var vid = getIframeVideo();
+        var isCurrentlyPaused = true;
+        if (vid) {
+            isCurrentlyPaused = vid.paused;
+        } else if (window.activeArtplayerInstance) {
+            isCurrentlyPaused = !window.activeArtplayerInstance.playing;
+        } else {
+            isCurrentlyPaused = isVideoPaused;
+        }
+
+        if (isCurrentlyPaused) {
+            sendIframeCommand('play');
+            updatePlayPauseIcon(false);
+            showServerToast('▶ Diputar');
+        } else {
+            sendIframeCommand('pause');
+            updatePlayPauseIcon(true);
+            showServerToast('⏸ Dijeda');
+        }
+        setTimeout(hideServerToast, 1200);
+    }
+
+    function toggleTheaterMode() {
+        var body = document.body;
+        body.classList.toggle('nyamimo-theater-mode');
+        var isTheater = body.classList.contains('nyamimo-theater-mode');
+        showServerToast(isTheater ? '🌙 Mode Bioskop: Aktif' : '☀️ Mode Normal: Aktif');
+        setTimeout(hideServerToast, 2000);
+    }
+
+    // Continuous 250ms State Sync Poller
+    if (window.nyamimoStatePollInterval) clearInterval(window.nyamimoStatePollInterval);
+    window.nyamimoStatePollInterval = setInterval(function() {
+        var vid = getIframeVideo();
+        if (vid) {
+            if (!isScrubDragging) {
+                currentPlayTime = vid.currentTime || 0;
+            }
+            if (vid.duration && vid.duration > 5 && !isNaN(vid.duration)) {
+                currentTotalDuration = vid.duration;
+            }
+            updateTimelineUI(currentPlayTime, currentTotalDuration);
+            updatePlayPauseIcon(vid.paused);
+            if (!vid.paused && currentPlayTime > 2) {
+                savePlaybackProgress(currentPlayTime, currentTotalDuration);
+            }
+            try {
+                if (vid.buffered && vid.buffered.length > 0) {
+                    var bufEnd = vid.buffered.end(vid.buffered.length - 1);
+                    var bufPct = Math.min(100, Math.max(0, (bufEnd / currentTotalDuration) * 100));
+                    var bufEl = document.getElementById('overlay-buffer-bar');
+                    if (bufEl) bufEl.style.width = bufPct + '%';
+                }
+            } catch(e) {}
+        } else if (window.activeArtplayerInstance) {
+            if (!isScrubDragging) {
+                currentPlayTime = window.activeArtplayerInstance.currentTime || 0;
+            }
+            if (window.activeArtplayerInstance.duration && window.activeArtplayerInstance.duration > 5) {
+                currentTotalDuration = window.activeArtplayerInstance.duration;
+            }
+            updateTimelineUI(currentPlayTime, currentTotalDuration);
+            updatePlayPauseIcon(!window.activeArtplayerInstance.playing);
+        }
+    }, 250);
+
+    // Listen for progress and ready events from iframe proxy player
+    window.addEventListener('message', function(evt) {
+        if (!evt.data) return;
+        if (evt.data.type === 'nyamimo-video-progress' && typeof evt.data.currentTime === 'number') {
+            savePlaybackProgress(evt.data.currentTime, evt.data.duration);
+            if (!isScrubDragging) {
+                updateTimelineUI(evt.data.currentTime, evt.data.duration);
+            }
+            if (typeof evt.data.paused === 'boolean') {
+                updatePlayPauseIcon(evt.data.paused);
+            }
+        } else if (evt.data.type === 'nyamimo-player-ready') {
+            if (typeof evt.data.duration === 'number' && evt.data.duration > 10) {
+                currentTotalDuration = evt.data.duration;
+                updateTimelineUI(currentPlayTime, currentTotalDuration);
+            }
+            var urlParams = new URLSearchParams(window.location.search);
+            var targetSeek = urlParams.has('t') ? (parseFloat(urlParams.get('t')) || 0) : 0;
+            if (targetSeek > 5) {
+                sendIframeCommand('seek', targetSeek);
+                var formattedTime = window.formatWatchTime ? formatWatchTime(targetSeek) : (targetSeek + 's');
+                showServerToast('⏩ Melanjutkan dari menit ' + formattedTime);
+                setTimeout(hideServerToast, 2500);
+            }
+        }
+    });
+
+    // Listen for window blur when user clicks into the video iframe
+    var iframePlaybackTimer = null;
+    window.addEventListener('blur', function() {
+        var ifr = document.querySelector('#player-iframe-container iframe');
+        if (ifr && document.activeElement === ifr) {
+            if (iframePlaybackTimer) clearInterval(iframePlaybackTimer);
+            iframePlaybackTimer = setInterval(function() {
+                if (!isVideoPaused && !isScrubDragging) {
+                    currentPlayTime += 1;
+                    if (currentPlayTime > currentTotalDuration) currentPlayTime = currentTotalDuration;
+                    updateTimelineUI(currentPlayTime, currentTotalDuration);
+                    savePlaybackProgress(currentPlayTime, currentTotalDuration);
+                }
+            }, 1000);
+        }
+    });
+
+    function onPlayerIframeLoad() {
+        if (window.serverWatchdogTimer) clearTimeout(window.serverWatchdogTimer);
+        hideServerToast();
+        var urlParams = new URLSearchParams(window.location.search);
+        var lastWatched = window.WatchHistory ? WatchHistory.getBySlug(currentAnimeSlug) : null;
+        var targetSeek = 0;
+        if (urlParams.has('t')) {
+            targetSeek = parseFloat(urlParams.get('t')) || 0;
+        } else if (lastWatched && lastWatched.episodeNum === currentActiveEp && lastWatched.time > 5) {
+            targetSeek = parseFloat(lastWatched.time) || 0;
+        }
+        if (targetSeek > 5) {
+            setTimeout(function() {
+                sendIframeCommand('seek', targetSeek);
+                var formattedTime = window.formatWatchTime ? formatWatchTime(targetSeek) : (targetSeek + 's');
+                showServerToast('⏩ Melanjutkan dari menit ' + formattedTime);
+                setTimeout(hideServerToast, 2500);
+            }, 800);
+        }
+    }
+    window.onPlayerIframeLoad = onPlayerIframeLoad;
+
+    function onPlayerIframeError() {
+        if (window.handleServerFailure) window.handleServerFailure();
+    }
+    window.onPlayerIframeError = onPlayerIframeError;
+
+    function skipVideoIntro() {
+        seekVideo(85);
+        showServerToast('⏩ Intro Dilewati (+85s)');
+        setTimeout(hideServerToast, 2200);
+    }
+
+    function seekVideo(seconds) {
+        var targetTime = Math.max(0, Math.min(currentTotalDuration, currentPlayTime + seconds));
+        currentPlayTime = targetTime;
+        updateTimelineUI(targetTime, currentTotalDuration);
+        sendIframeCommand('seek', targetTime);
+    }
+
+    function setPlayerSpeed(speed) {
+        const lbl = document.getElementById('active-speed-label');
+        if (lbl) lbl.textContent = speed + 'x';
+        sendIframeCommand('rate', speed);
+        showServerToast('Kecepatan video: ' + speed + 'x');
+        setTimeout(hideServerToast, 2000);
+    }
+
+    function setActiveServerBtn(btnEl) {
+        if (!btnEl) return;
+        const title = btnEl.getAttribute('data-video-title') || btnEl.innerText.trim();
+
+        document.querySelectorAll('.server-btn').forEach(b => {
+            b.classList.remove('bg-[#17171B]', 'text-[#FFCC00]', 'border-[#17171B]', 'ring-2', 'ring-[#FFCC00]/40', 'shadow-md', 'active-server');
+            b.classList.add('bg-white', 'text-[#1A1A1E]', 'border-[#E2E2DC]');
+            const dot = b.querySelector('.server-active-dot');
+            if (dot) dot.classList.add('hidden');
+        });
+
+        btnEl.classList.remove('bg-white', 'text-[#1A1A1E]', 'border-[#E2E2DC]');
+        btnEl.classList.add('bg-[#17171B]', 'text-[#FFCC00]', 'border-[#17171B]', 'ring-2', 'ring-[#FFCC00]/40', 'shadow-md', 'active-server');
+        const activeDot = btnEl.querySelector('.server-active-dot');
+        if (activeDot) activeDot.classList.remove('hidden');
+
+        const serverNameEl = document.getElementById('active-server-name');
+        if (serverNameEl && title) {
+            serverNameEl.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-[#FFCC00] animate-pulse"></span>' + title;
+        }
+    }
+
+    function setActiveServerByPath(path) {
+        if (!path) return false;
+        const btns = document.querySelectorAll('.server-btn');
+        for (let b of btns) {
+            if (b.getAttribute('data-video-path') === path) {
+                setActiveServerBtn(b);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function setActiveServerByIdx(idx) {
+        if (window.currentEpisodeServers && window.currentEpisodeServers[idx]) {
+            const path = window.currentEpisodeServers[idx].videoPath;
+            if (setActiveServerByPath(path)) return;
+        }
+        const allBtns = document.querySelectorAll('.server-btn');
+        if (allBtns.length > 0 && idx >= 0 && idx < allBtns.length) {
+            setActiveServerBtn(allBtns[idx]);
+        }
+    }
+
+    function clearAllServerTimers() {
+        if (window.serverWatchdogTimer) {
+            clearTimeout(window.serverWatchdogTimer);
+            window.serverWatchdogTimer = null;
+        }
+        if (window.serverSwitchPendingTimer) {
+            clearTimeout(window.serverSwitchPendingTimer);
+            window.serverSwitchPendingTimer = null;
+        }
+    }
+
+    function toggleAutoSwitchServer(enabled) {
+        window.autoSwitchServerEnabled = !!enabled;
+        // Persist preference to localStorage and cookie so it survives refresh & matches backend
+        localStorage.setItem('nyamimo_auto_switch_server', enabled ? 'true' : 'false');
+        document.cookie = "auto_switch_server=" + enabled + "; path=/; max-age=" + (30 * 24 * 60 * 60);
+
+        const statusEl = document.getElementById('auto-switch-status');
+        if (statusEl) {
+            statusEl.textContent = enabled ? 'ON' : 'OFF';
+            statusEl.className = enabled
+                ? 'text-[10px] px-1.5 py-0.5 rounded bg-[#FFCC00] text-[#17171B] font-extrabold font-title'
+                : 'text-[10px] px-1.5 py-0.5 rounded bg-[#E2E2DC] text-[#55555B] font-extrabold font-title';
+        }
+        if (enabled) {
+            showServerToast('Auto Switch Server: DIAKTIFKAN');
+            startServerHealthWatchdog();
+        } else {
+            clearAllServerTimers();
+            hideServerToast();
+            showServerToast('Auto Switch Server: DINONAKTIFKAN');
+        }
+        setTimeout(hideServerToast, 2000);
+    }
+
+    function setPlayerQuality(qCode, qLabel) {
+        const lbl = document.getElementById('active-quality-label');
+        if (lbl) lbl.textContent = 'Quality: ' + qCode;
+
+        if (window.currentEpisodeServers && window.currentEpisodeServers.length > 0) {
+            let targetIdx = -1;
+            const targetRes = qCode.toLowerCase().replace('p', '');
+
+            if (qCode !== 'Auto') {
+                for (let i = 0; i < window.currentEpisodeServers.length; i++) {
+                    const title = (window.currentEpisodeServers[i].title || '').toLowerCase();
+                    if (title.includes(targetRes)) {
+                        targetIdx = i;
+                        break;
+                    }
+                }
+            }
+
+            if (targetIdx === -1) {
+                targetIdx = 0;
+            }
+
+            const chosen = window.currentEpisodeServers[targetIdx];
+            if (chosen && chosen.videoPath) {
+                clearAllServerTimers();
+                window.activeServerIdx = targetIdx;
+                setActiveServerByIdx(targetIdx);
+                showServerToast('Beralih ke kualitas ' + qLabel + ' (' + chosen.title + ')...');
+                htmx.ajax('GET', '/api/video-url?path=' + encodeURIComponent(chosen.videoPath), {
+                    target: '#player-iframe-container',
+                    swap: 'innerHTML'
+                });
+                if (window.autoSwitchServerEnabled) {
+                    startServerHealthWatchdog();
+                }
+                return;
+            }
+        }
+
+        showServerToast('Kualitas diubah ke ' + qLabel);
+        setTimeout(hideServerToast, 2200);
+    }
+
+    function startServerHealthWatchdog() {
+        clearAllServerTimers();
+        if (!window.currentEpisodeServers || window.currentEpisodeServers.length <= 1) return;
+
+        window.serverWatchdogTimer = setTimeout(function () {
+            if (!window.currentEpisodeServers || window.currentEpisodeServers.length <= 1) return;
+
+            if (window.activeServerIdx + 1 < window.currentEpisodeServers.length) {
+                const nextIdx = window.activeServerIdx + 1;
+                const currentName = window.currentEpisodeServers[window.activeServerIdx] ? window.currentEpisodeServers[window.activeServerIdx].title : "Server";
+                const nextServer = window.currentEpisodeServers[nextIdx];
+
+                showServerToast("⚠️ " + currentName + " tidak merespon. Otomatis beralih ke " + nextServer.title + "...");
+                window.activeServerIdx = nextIdx;
+                setActiveServerByIdx(nextIdx);
+
+                window.serverSwitchPendingTimer = setTimeout(function () {
+                    htmx.ajax('GET', '/api/video-url?path=' + encodeURIComponent(nextServer.videoPath), {
+                        target: '#player-iframe-container',
+                        swap: 'innerHTML'
+                    });
+                }, 800);
+            } else {
+                showAllServersFailedState();
+            }
+        }, 3500);
+    }
+
+    function onPlayerIframeLoad() {
+        clearAllServerTimers();
+        hideServerToast();
+    }
+
+    function onPlayerIframeError() {
+        clearAllServerTimers();
+        if (!window.currentEpisodeServers || window.currentEpisodeServers.length <= 1) return;
+        if (window.activeServerIdx + 1 < window.currentEpisodeServers.length) {
+            const nextIdx = window.activeServerIdx + 1;
+            const nextServer = window.currentEpisodeServers[nextIdx];
+            showServerToast("⚠️ Kualitas bermasalah. Otomatis beralih ke " + nextServer.title + "...");
+            window.activeServerIdx = nextIdx;
+            setActiveServerByIdx(nextIdx);
+            htmx.ajax('GET', '/api/video-url?path=' + encodeURIComponent(nextServer.videoPath), {
+                target: '#player-iframe-container',
+                swap: 'innerHTML'
+            });
+        } else {
+            showAllServersFailedState();
+        }
+    }
+
+    function showServerToast(msg) {
+        let toast = document.getElementById('player-status-toast');
+        const container = document.getElementById('player-iframe-container');
+        if (!container) return;
+
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'player-status-toast';
+            toast.className = 'absolute top-3 left-3 z-30 px-3 py-1.5 rounded-lg bg-[#17171B]/90 border border-[#FFCC00]/50 text-[#FFCC00] text-xs font-bold font-title shadow-lg backdrop-blur-md transition-all flex items-center gap-2 pointer-events-none';
+            container.appendChild(toast);
+        }
+        toast.innerHTML = '<span class="w-2 h-2 rounded-full bg-[#FFCC00] animate-pulse"></span>' + msg;
+        toast.style.display = 'flex';
+    }
+
+    function hideServerToast() {
+        const toast = document.getElementById('player-status-toast');
+        if (toast) toast.style.display = 'none';
+    }
+
+    function showAllServersFailedState() {
+        const container = document.getElementById('player-iframe-container');
+        if (container) {
+            container.innerHTML = `
+                <div class="flex flex-col items-center justify-center p-8 text-center space-y-4 max-w-lg mx-auto">
+                    <div class="w-12 h-12 rounded-xl bg-red-500/20 border border-red-500/40 flex items-center justify-center text-red-400 shadow-md">
+                        <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+                    </div>
+                    <div class="space-y-1">
+                        <h3 class="text-sm font-bold font-title text-white">Semua Server Mengalami Gangguan</h3>
+                        <p class="text-xs text-[#A0A0A8]">Sistem telah memeriksa semua server namun tidak ada yang merespon. Silakan coba muat ulang atau pilih episode lain.</p>
+                    </div>
+                    <button onclick="location.reload();" class="px-4 py-2 rounded-lg bg-[#FFCC00] text-[#17171B] font-bold text-xs">Muat Ulang Halaman</button>
+                </div>
+            `;
+            if (window.lucide) lucide.createIcons();
+        }
+    }
+
+    function toggleFullScreenPlayer() {
+        const wrapper = document.getElementById('nyamimo-player-wrapper') || document.getElementById('player-iframe-container');
+        if (!wrapper) return;
+        
+        const isFS = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
+        if (!isFS) {
+            if (wrapper.requestFullscreen) {
+                wrapper.requestFullscreen();
+            } else if (wrapper.webkitRequestFullscreen) {
+                wrapper.webkitRequestFullscreen();
+            } else if (wrapper.mozRequestFullScreen) {
+                wrapper.mozRequestFullScreen();
+            } else if (wrapper.msRequestFullscreen) {
+                wrapper.msRequestFullscreen();
+            }
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            } else if (document.mozCancelFullScreen) {
+                document.mozCancelFullScreen();
+            } else if (document.msExitFullscreen) {
+                document.msExitFullscreen();
+            }
+        }
+    }
+
+    function handleFullscreenChange() {
+        const wrapper = document.getElementById('nyamimo-player-wrapper');
+        const fsElem = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
+        if (wrapper) {
+            if (fsElem) {
+                wrapper.classList.add('is-fullscreen');
+            } else {
+                wrapper.classList.remove('is-fullscreen');
+            }
+        }
+    }
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+
+    // Global keyboard hotkeys
+    document.addEventListener('keydown', function (e) {
+        if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) return;
+
+        if (e.code === 'Space' || e.key === 'k' || e.key === 'K') {
+            e.preventDefault();
+            togglePlayPause();
+        } else if (e.code === 'ArrowRight' || e.key === 'l' || e.key === 'L') {
+            e.preventDefault();
+            seekVideo(10);
+            showServerToast('⏩ +10 detik');
+            setTimeout(hideServerToast, 1200);
+        } else if (e.code === 'ArrowLeft' || e.key === 'j' || e.key === 'J') {
+            e.preventDefault();
+            seekVideo(-10);
+            showServerToast('⏪ -10 detik');
+            setTimeout(hideServerToast, 1200);
+        } else if (e.key === 'i' || e.key === 'I' || e.key === 's' || e.key === 'S') {
+            e.preventDefault();
+            skipVideoIntro();
+        } else if (e.key === 'f' || e.key === 'F') {
+            e.preventDefault();
+            toggleFullScreenPlayer();
+        }
+    });
+
+    // Handle HTMX swaps to re-initialize player and Lucide icons
+    document.body.addEventListener('htmx:afterSwap', function (evt) {
+        if (evt.detail.target && evt.detail.target.id === 'player-iframe-container') {
+            if (window.lucide) lucide.createIcons();
+            const ifr = evt.detail.target.querySelector('iframe');
+            const vid = evt.detail.target.querySelector('video');
+            const url = ifr ? ifr.src : (vid ? vid.src : '');
+            initHybridPlayer(url, evt.detail.target.innerHTML);
+        }
+    });
+
+    // Initial load setup
+    setActiveServerByIdx(0);
+    if (window.autoSwitchServerEnabled) {
+        startServerHealthWatchdog();
+    }
+    initHybridPlayer("{{.VideoURL}}", document.getElementById('player-iframe-container') ? document.getElementById('player-iframe-container').innerHTML : "");
+
+    // ===== Seamless Episode Switching (No Page Refresh / SPA Mode) =====
+    function getAnimeMetadata() {
+        var el = document.getElementById('anime-meta-context');
+        return {
+            slug: el ? (el.getAttribute('data-slug') || '') : '',
+            title: el ? (el.getAttribute('data-title') || '') : '',
+            img: el ? (el.getAttribute('data-img') || '') : '',
+            activeEp: el ? (el.getAttribute('data-active-ep') || '1') : '1'
+        };
+    }
+
+    function initEpisodeList() {
+        var buttons = document.querySelectorAll('.sidebar-ep-btn');
+        var list = [];
+        buttons.forEach(function(btn) {
+            list.push({
+                number: (btn.getAttribute('data-ep-num') || '').trim(),
+                detailEps: btn.getAttribute('data-detail-eps') || '',
+                title: btn.getAttribute('data-ep-title') || ''
+            });
+        });
+        window.allEpisodesList = list;
+    }
+    initEpisodeList();
+
+    function updatePrevNextButtons() {
+        var episodes = window.allEpisodesList || [];
+        var activeEp = (window.currentActiveEp || getAnimeMetadata().activeEp || '1').toString().trim();
+        var currentIdx = episodes.findIndex(function(e) { return e.number === activeEp; });
+
+        var btnPrev = document.getElementById('btn-prev-ep');
+        var btnNext = document.getElementById('btn-next-ep');
+        var prevLabel = document.getElementById('prev-ep-label');
+        var nextLabel = document.getElementById('next-ep-label');
+
+        if (currentIdx > 0 && btnPrev) {
+            var prevEp = episodes[currentIdx - 1];
+            btnPrev.style.display = 'flex';
+            btnPrev.title = 'Episode Sebelumnya (Eps ' + prevEp.number + ')';
+            if (prevLabel) prevLabel.textContent = 'Eps ' + prevEp.number;
+            btnPrev._epItem = prevEp;
+        } else if (btnPrev) {
+            btnPrev.style.display = 'none';
+        }
+
+        if (currentIdx >= 0 && currentIdx < episodes.length - 1 && btnNext) {
+            var nextEp = episodes[currentIdx + 1];
+            btnNext.style.display = 'flex';
+            btnNext.title = 'Episode Berikutnya (Eps ' + nextEp.number + ')';
+            if (nextLabel) nextLabel.textContent = 'Eps ' + nextEp.number;
+            btnNext._epItem = nextEp;
+        } else if (btnNext) {
+            btnNext.style.display = 'none';
+        }
+    }
+    updatePrevNextButtons();
+
+    window.goToPrevEpisode = function () {
+        var btn = document.getElementById('btn-prev-ep');
+        if (btn && btn._epItem) {
+            switchEpisodeAjax(null, null, btn._epItem.number, btn._epItem.detailEps, btn._epItem.title, true);
+        }
+    };
+
+    window.goToNextEpisode = function () {
+        var btn = document.getElementById('btn-next-ep');
+        if (btn && btn._epItem) {
+            switchEpisodeAjax(null, null, btn._epItem.number, btn._epItem.detailEps, btn._epItem.title, true);
+        }
+    };
+
+    function renderServerButtons(groupedVideos, videos) {
+        var container = document.getElementById('server-list-container');
+        if (!container) return;
+
+        if (!groupedVideos || Object.keys(groupedVideos).length === 0) {
+            container.innerHTML = '<p class="text-xs text-[#55555B]">Server dikonfigurasi otomatis dalam mode optimal.</p>';
+            return;
+        }
+
+        var firstVideoPath = (videos && videos.length > 0) ? (videos[0].videoPath || videos[0].video || videos[0].Video) : '';
+        var html = '<div class="grid gap-3">';
+        for (var provider in groupedVideos) {
+            if (!groupedVideos.hasOwnProperty(provider)) continue;
+            var vList = groupedVideos[provider] || [];
+            html += '<div class="bg-[#F6F5F0] border border-[#E2E2DC] rounded-xl p-3">';
+            html += '<div class="text-[11px] font-extrabold font-title text-[#17171B] uppercase tracking-wider mb-2 flex items-center gap-1.5">';
+            html += '<i data-lucide="server" class="w-3.5 h-3.5 text-[#FFCC00]"></i> ' + provider;
+            html += '</div><div class="flex flex-wrap gap-2">';
+            vList.forEach(function(v) {
+                var vPath = v.videoPath || v.video || v.Video || '';
+                var vTitle = v.title || v.Title || '';
+                var isActive = (vPath === firstVideoPath);
+                var safePath = vPath.replace(/'/g, "\\'");
+                var safeTitle = vTitle.replace(/'/g, "\\'");
+                html += '<button type="button" data-video-path="' + safePath + '" data-video-title="' + safeTitle + '" ';
+                html += 'onclick="onServerBtnClick(this, \'' + safePath + '\', \'' + safeTitle + '\')" ';
+                html += 'class="server-btn px-3.5 py-1.5 rounded-lg text-xs font-bold font-title transition-all flex items-center gap-1.5 border shadow-sm cursor-pointer ' + (isActive ? 'active-server bg-[#17171B] text-[#FFCC00] border-[#17171B] ring-2 ring-[#FFCC00]/40 shadow-md' : 'bg-white text-[#1A1A1E] border-[#E2E2DC] hover:bg-[#FFCC00] hover:text-[#17171B]') + '">';
+                html += '<span class="server-active-dot w-2 h-2 rounded-full bg-[#FFCC00] animate-pulse ' + (isActive ? '' : 'hidden') + '"></span>';
+                html += '<span>' + vTitle + '</span>';
+                html += '</button>';
+            });
+            html += '</div></div>';
+        }
+        html += '</div>';
+        container.innerHTML = html;
+        if (window.lucide) lucide.createIcons();
+    }
+
+    window.onServerBtnClick = function(btnEl, videoPath, videoTitle) {
+        setActiveServerBtn(btnEl);
+        showServerToast('Beralih ke ' + videoTitle + '...');
+        if (window.autoSwitchServerEnabled) {
+            startServerHealthWatchdog();
+        } else {
+            clearAllServerTimers();
+        }
+        var targetUrl = '/api/video-url?path=' + encodeURIComponent(videoPath) + '&slug=' + encodeURIComponent('{{.Slug}}') + '&ep=' + encodeURIComponent('{{.ActiveEpisodeNum}}');
+        htmx.ajax('GET', targetUrl, {
+            target: '#player-iframe-container',
+            swap: 'innerHTML'
+        });
+    };
+
+    window.handleServerFailure = function() {
+        if (!window.currentEpisodeServers || window.currentEpisodeServers.length <= 1) return;
+        var currentIdx = window.activeServerIdx || 0;
+        if (currentIdx + 1 < window.currentEpisodeServers.length) {
+            var nextIdx = currentIdx + 1;
+            var nextServer = window.currentEpisodeServers[nextIdx];
+            window.activeServerIdx = nextIdx;
+            setActiveServerByIdx(nextIdx);
+            showServerToast('⚠️ Server lambat/bermasalah, beralih ke ' + nextServer.title + '...');
+            var targetUrl = '/api/video-url?path=' + encodeURIComponent(nextServer.videoPath) + '&slug=' + encodeURIComponent('{{.Slug}}') + '&ep=' + encodeURIComponent('{{.ActiveEpisodeNum}}');
+            htmx.ajax('GET', targetUrl, {
+                target: '#player-iframe-container',
+                swap: 'innerHTML'
+            });
+        }
+    };
+
+    window.switchDetailSubtitle = function(lang) {
+        if (window.activeArtplayerInstance && window.activeArtplayerInstance.subtitle) {
+            if (lang === 'off') {
+                window.activeArtplayerInstance.subtitle.show = false;
+            } else {
+                var subUrl = '/api/v1/subtitle?lang=' + lang + '&slug=' + encodeURIComponent('{{.Slug}}') + '&ep=' + encodeURIComponent('{{.ActiveEpisodeNum}}');
+                window.activeArtplayerInstance.subtitle.switch(subUrl, {
+                    name: lang === 'id' ? 'Indonesia (AI)' : 'English',
+                });
+                window.activeArtplayerInstance.subtitle.show = true;
+            }
+        }
+        var container = document.getElementById('player-iframe-container');
+        if (container) {
+            var video = container.querySelector('video');
+            if (video) {
+                var existing = video.querySelector('track');
+                if (existing) existing.remove();
+                if (lang !== 'off') {
+                    var track = document.createElement('track');
+                    track.kind = 'subtitles';
+                    track.label = lang === 'id' ? 'Indonesia (AI)' : 'English';
+                    track.srclang = lang;
+                    track.default = true;
+                    track.src = '/api/v1/subtitle?lang=' + lang + '&slug=' + encodeURIComponent('{{.Slug}}') + '&ep=' + encodeURIComponent('{{.ActiveEpisodeNum}}');
+                    video.appendChild(track);
+                }
+            }
+        }
+        document.querySelectorAll('#detail-subtitle-group .sub-btn-detail').forEach(function(btn) {
+            var txt = btn.innerText.toLowerCase();
+            var match = (lang === 'id' && txt.includes('indonesia')) ||
+                        (lang === 'en' && txt.includes('english')) ||
+                        (lang === 'off' && txt.includes('off'));
+            if (match) {
+                btn.className = 'sub-btn-detail px-3.5 py-1.5 rounded-lg bg-[#FFCC00] text-[#17171B] font-bold text-xs flex items-center gap-1.5 transition-all shadow-sm border border-[#FFCC00] cursor-pointer';
+            } else {
+                btn.className = 'sub-btn-detail px-3.5 py-1.5 rounded-lg bg-[#F6F5F0] hover:bg-[#E2E2DC] text-[#1A1A1E] font-medium text-xs border border-[#E2E2DC] flex items-center gap-1.5 transition-all cursor-pointer';
+            }
+        });
+        if (typeof showServerToast === 'function') {
+            showServerToast(lang === 'id' ? '🇮🇩 Subtitle Indonesia (AI Auto Translate) Aktif' : lang === 'en' ? '🇬🇧 Subtitle English Aktif' : '❌ Subtitle Dimatikan');
+        }
+    };
+
+    // ===== Intelligent In-Memory RAM Caching & Episode Prefetching =====
+    window.episodeDataCache = window.episodeDataCache || {};
+
+    function applyEpisodeData(data, cleanEpNum) {
+        if (!data || data.status !== 'ok') return;
+
+        var serverVideos = (data.videos || []).map(function(v) {
+            return { id: v.id || v.ID, title: v.title || v.Title, videoPath: v.video || v.Video };
+        });
+        window.currentEpisodeServers = serverVideos;
+        window.activeServerIdx = 0;
+
+        // Update active server display text
+        var activeServerNameEl = document.getElementById('active-server-name');
+        if (activeServerNameEl && data.activeServerTitle) {
+            activeServerNameEl.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-[#FFCC00] animate-pulse"></span>' + data.activeServerTitle;
+        }
+
+        // Render updated server buttons
+        renderServerButtons(data.groupedVideos, serverVideos);
+
+        // Initialize player with instant cached stream
+        initHybridPlayer(data.videoURL, data.rawIframe);
+
+        if (window.autoSwitchServerEnabled) {
+            startServerHealthWatchdog();
+        }
+        hideServerToast();
+    }
+
+    function prefetchSingleEpisode(epNum, detailEps, epTitle) {
+        var numStr = (epNum || '').toString().trim();
+        if (!numStr || window.episodeDataCache[numStr]) return;
+
+        var meta = getAnimeMetadata();
+        var apiUrl = '/api/episode-data?detail_eps=' + encodeURIComponent(detailEps || '') + '&ep=' + encodeURIComponent(numStr) + '&title=' + encodeURIComponent(meta.title);
+        fetch(apiUrl)
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+                if (data && data.status === 'ok') {
+                    window.episodeDataCache[numStr] = data;
+                }
+            })
+            .catch(function() {});
+    }
+
+    function prefetchAdjacentEpisodes() {
+        var episodes = window.allEpisodesList || [];
+        var activeEp = (window.currentActiveEp || getAnimeMetadata().activeEp || '1').toString().trim();
+        var currentIdx = episodes.findIndex(function(e) { return e.number === activeEp; });
+        if (currentIdx === -1) return;
+
+        // 1. Instantly prefetch Next Episode (Episode Selanjutnya)
+        if (currentIdx + 1 < episodes.length) {
+            var next = episodes[currentIdx + 1];
+            prefetchSingleEpisode(next.number, next.detailEps, next.title);
+        }
+        // 2. Prefetch Previous Episode (Episode Sebelumnya)
+        if (currentIdx - 1 >= 0) {
+            var prev = episodes[currentIdx - 1];
+            setTimeout(function() {
+                prefetchSingleEpisode(prev.number, prev.detailEps, prev.title);
+            }, 600);
+        }
+        // 3. Prefetch Next + 2
+        if (currentIdx + 2 < episodes.length) {
+            var next2 = episodes[currentIdx + 2];
+            setTimeout(function() {
+                prefetchSingleEpisode(next2.number, next2.detailEps, next2.title);
+            }, 1200);
+        }
+        // 4. Background prefetch remaining episodes progressively into RAM
+        episodes.forEach(function(ep, i) {
+            if (Math.abs(i - currentIdx) > 2) {
+                setTimeout(function() {
+                    prefetchSingleEpisode(ep.number, ep.detailEps, ep.title);
+                }, 2500 + i * 600);
+            }
+        });
+    }
+
+    window.switchEpisodeAjax = function(event, el, epNum, detailEps, epTitle, shouldPushState) {
+        if (event) {
+            if (event.preventDefault) event.preventDefault();
+            if (event.stopPropagation) event.stopPropagation();
+        }
+        if (shouldPushState === undefined) shouldPushState = true;
+
+        var meta = getAnimeMetadata();
+        if (el) {
+            if (!epNum) epNum = el.getAttribute('data-ep-num');
+            if (!detailEps) detailEps = el.getAttribute('data-detail-eps');
+            if (!epTitle) epTitle = el.getAttribute('data-ep-title');
+        }
+
+        var cleanEpNum = (epNum || '1').toString().trim();
+        window.currentActiveEp = cleanEpNum;
+        window.currentEpTitle = epTitle || ('Episode ' + cleanEpNum);
+
+        // 1. Update UI Headline & Breadcrumb
+        var badgeEl = document.getElementById('headline-badge-ep');
+        if (badgeEl) badgeEl.textContent = 'EPISODE ' + cleanEpNum;
+
+        var breadcrumbEl = document.getElementById('breadcrumb-ep-num');
+        if (breadcrumbEl) breadcrumbEl.textContent = 'Episode ' + cleanEpNum;
+
+        var titleEl = document.getElementById('headline-main-title');
+        if (titleEl) {
+            var subText = (window.currentEpTitle && !window.currentEpTitle.startsWith('Episode')) ? (': ' + window.currentEpTitle) : '';
+            titleEl.textContent = meta.title + ' — Episode ' + cleanEpNum + subText;
+        }
+
+        // 2. Update Sidebar Active Button Styles
+        document.querySelectorAll('.sidebar-ep-btn').forEach(function(btn) {
+            btn.classList.remove('bg-[#17171B]', 'text-white', 'border-[#17171B]', 'ring-2', 'ring-[#17171B]', 'active-ep-btn', 'shadow-sm');
+            btn.classList.add('bg-[#F6F5F0]', 'text-[#1A1A1E]', 'border-[#E2E2DC]');
+            var dot = btn.querySelector('.ep-active-dot');
+            if (dot) dot.classList.add('hidden');
+        });
+
+        var targetBtn = el || document.querySelector('.sidebar-ep-btn[data-ep-num="' + cleanEpNum + '"]');
+        if (targetBtn) {
+            targetBtn.classList.remove('bg-[#F6F5F0]', 'text-[#1A1A1E]', 'border-[#E2E2DC]');
+            targetBtn.classList.add('bg-[#17171B]', 'text-white', 'border-[#17171B]', 'ring-2', 'ring-[#17171B]', 'active-ep-btn', 'shadow-sm');
+            var dot = targetBtn.querySelector('.ep-active-dot');
+            if (dot) dot.classList.remove('hidden');
+            targetBtn.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        }
+
+        // 3. Update Browser URL cleanly without reload
+        if (shouldPushState && meta.slug) {
+            var newUrl = '/anime/' + meta.slug + '/?ep=' + encodeURIComponent(cleanEpNum);
+            window.history.pushState({ ep: cleanEpNum, detailEps: detailEps, epTitle: epTitle }, '', newUrl);
+        }
+
+        // 4. Record to WatchHistory
+        if (window.WatchHistory && meta.slug) {
+            try {
+                WatchHistory.add({
+                    slug: meta.slug,
+                    title: meta.title,
+                    img: meta.img,
+                    episode: 'Episode ' + cleanEpNum,
+                    episodeNum: cleanEpNum,
+                    episodeTitle: window.currentEpTitle,
+                    time: 0,
+                    link: '/anime/' + meta.slug + '/?ep=' + encodeURIComponent(cleanEpNum)
+                });
+            } catch(e) {
+                console.warn('WatchHistory add error:', e);
+            }
+        }
+
+        // 5. Update Prev/Next buttons
+        updatePrevNextButtons();
+
+        // 6. Check In-Memory RAM Cache for instant 0ms episode switch!
+        if (window.episodeDataCache && window.episodeDataCache[cleanEpNum]) {
+            var cachedData = window.episodeDataCache[cleanEpNum];
+            applyEpisodeData(cachedData, cleanEpNum);
+            prefetchAdjacentEpisodes();
+            return false;
+        }
+
+        // 7. If not yet in RAM cache, show loading spinner and fetch
+        var container = document.getElementById('player-iframe-container');
+        if (container) {
+            container.innerHTML = '<div class="flex flex-col items-center justify-center p-8 text-center space-y-4 max-w-lg mx-auto"><div class="w-10 h-10 border-4 border-[#FFCC00] border-t-transparent rounded-full animate-spin"></div><div class="space-y-1"><h3 class="text-sm font-bold font-title text-white">Memuat Episode ' + cleanEpNum + '...</h3><p class="text-xs text-[#A0A0A8]">Menghubungkan server pemutar terbaik...</p></div></div>';
+            if (window.lucide) lucide.createIcons();
+        }
+
+        showServerToast('Memuat Episode ' + cleanEpNum + '...');
+
+        if (!detailEps && window.allEpisodesList) {
+            var found = window.allEpisodesList.find(function(e) { return e.number === cleanEpNum; });
+            if (found) {
+                detailEps = found.detailEps;
+                if (!epTitle) epTitle = found.title;
+            }
+        }
+
+        var apiUrl = '/api/episode-data?detail_eps=' + encodeURIComponent(detailEps || '') + '&ep=' + encodeURIComponent(cleanEpNum) + '&title=' + encodeURIComponent(meta.title);
+        fetch(apiUrl)
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+                if (data && data.status === 'ok') {
+                    window.episodeDataCache[cleanEpNum] = data; // Save to client RAM cache
+                    applyEpisodeData(data, cleanEpNum);
+                    prefetchAdjacentEpisodes(); // Keep prefetching ahead
+                } else {
+                    showServerToast('⚠️ Gagal memuat video episode ini');
+                }
+            })
+            .catch(function(err) {
+                console.error('Failed to load episode data:', err);
+                showServerToast('⚠️ Gagal terhubung ke server episode');
+            });
+
+        return false;
+    };
+
+    // Listen to browser Back/Forward navigation
+    window.addEventListener('popstate', function(event) {
+        var urlParams = new URLSearchParams(window.location.search);
+        var targetEp = urlParams.get('ep') || '1';
+        if (window.allEpisodesList) {
+            var found = window.allEpisodesList.find(function(e) { return e.number === targetEp; });
+            if (found) {
+                switchEpisodeAjax(null, null, found.number, found.detailEps, found.title, false);
+            }
+        }
+    });
+
+    // Start background prefetching of adjacent episodes immediately on page load
+    setTimeout(function () {
+        prefetchAdjacentEpisodes();
+    }, 1000);
+
+    // Auto-scroll episode grid to active episode on initial load
+    setTimeout(function () {
+        var activeEpEl = document.querySelector('.sidebar-episode-container .active-ep-btn');
+        if (activeEpEl) {
+            activeEpEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        }
+    }, 300);
+    // ===== Error Reporting & Diagnostics Helpers =====
+    function copyDiagnosticsLog() {
+        var info = 'NYAMIMO DIAGNOSTICS LOG\n' +
+            'Anime: ' + currentAnimeTitle + ' (' + currentAnimeSlug + ')\n' +
+            'Episode: ' + currentActiveEp + '\n' +
+            'Active Server: ' + (window.activeServerTitle || 'Default') + '\n' +
+            'Video URL: ' + (window.activeVideoUrl || 'N/A') + '\n' +
+            'User Agent: ' + navigator.userAgent + '\n' +
+            'Timestamp: ' + new Date().toISOString();
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(info).then(function() {
+                showServerToast('📋 Data diagnostik player berhasil disalin!');
+            });
+        } else {
+            prompt('Salin log berikut:', info);
+        }
+    }
+
+    function openErrorReportModal() {
+        var modal = document.getElementById('report-error-modal');
+        if (!modal) return;
+        
+        // Auto-fill context
+        var animeEl = document.getElementById('report-anime-title');
+        var epEl = document.getElementById('report-ep-num');
+        var serverEl = document.getElementById('report-server-name');
+        
+        if (animeEl) animeEl.textContent = currentAnimeTitle || 'Anime';
+        if (epEl) epEl.textContent = 'Episode ' + (currentActiveEp || '1');
+        
+        var activeSrv = 'Server Otomatis';
+        var activeBtn = document.querySelector('.server-btn.active-server');
+        if (activeBtn) {
+            activeSrv = activeBtn.getAttribute('data-video-title') || activeSrv;
+        }
+        if (serverEl) serverEl.textContent = activeSrv;
+        
+        // Reset state
+        document.getElementById('report-form-view').style.display = 'block';
+        document.getElementById('report-success-view').style.display = 'none';
+        document.getElementById('report-submit-btn').disabled = false;
+        document.getElementById('report-submit-btn').innerHTML = '<i data-lucide="send" class="w-4 h-4"></i> Kirim Laporan';
+        
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        if (window.lucide) lucide.createIcons();
+    }
+
+    function closeErrorReportModal() {
+        var modal = document.getElementById('report-error-modal');
+        if (!modal) return;
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+
+    function submitAnimeReport(event) {
+        if (event) event.preventDefault();
+        var submitBtn = document.getElementById('report-submit-btn');
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div> Mengirim...';
+        }
+
+        var selectedRadio = document.querySelector('input[name="report_issue_type"]:checked');
+        var issueType = selectedRadio ? selectedRadio.value : 'video_broken';
+        var issueLabel = selectedRadio ? selectedRadio.getAttribute('data-label') : 'Video Rusak';
+        var note = document.getElementById('report-note') ? document.getElementById('report-note').value : '';
+        
+        var activeSrv = 'Server Otomatis';
+        var activeVideo = '';
+        var activeBtn = document.querySelector('.server-btn.active-server');
+        if (activeBtn) {
+            activeSrv = activeBtn.getAttribute('data-video-title') || activeSrv;
+            activeVideo = activeBtn.getAttribute('data-video-path') || '';
+        }
+
+        var payload = {
+            anime_slug: currentAnimeSlug,
+            anime_title: currentAnimeTitle,
+            episode_num: currentActiveEp,
+            server_name: activeSrv,
+            video_url: activeVideo,
+            issue_type: issueType,
+            issue_label: issueLabel,
+            note: note
+        };
+
+        fetch('/api/report-error', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            if (data && data.success) {
+                document.getElementById('report-form-view').style.display = 'none';
+                document.getElementById('report-success-view').style.display = 'block';
+                if (window.lucide) lucide.createIcons();
+                setTimeout(function() {
+                    closeErrorReportModal();
+                }, 2800);
+            } else {
+                alert('Gagal mengirim laporan: ' + (data ? data.message : 'Unknown error'));
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i data-lucide="send" class="w-4 h-4"></i> Kirim Laporan';
+                }
+            }
+        })
+        .catch(function(err) {
+            alert('Gagal mengirim laporan. Pastikan koneksi internet lancar.');
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i data-lucide="send" class="w-4 h-4"></i> Kirim Laporan';
+            }
+        });
+
+        return false;
+    }
+</script>
+
+<!-- ===== MODAL LAPOR ANIME ERROR ===== -->
+<div id="report-error-modal" class="fixed inset-0 z-[99999] hidden items-center justify-center p-4 bg-black/80 backdrop-blur-md transition-all">
+    <div class="relative w-full max-w-lg bg-[#17171B] border border-[#2B2B32] rounded-3xl shadow-2xl overflow-hidden text-white font-sans animate-fade-in">
+        
+        <!-- Header -->
+        <div class="flex items-center justify-between p-5 sm:p-6 border-b border-white/10 bg-[#212126]">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-500 shadow-md">
+                    <i data-lucide="flag" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <h3 class="text-base font-extrabold font-title text-white">Lapor Video / Anime Error</h3>
+                    <p class="text-xs text-gray-400 mt-0.5">Bantu kami memperbaiki masalah streaming dengan cepat</p>
+                </div>
+            </div>
+            <button onclick="closeErrorReportModal()" class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-white flex items-center justify-center transition-colors">
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+        </div>
+
+        <!-- Form Body -->
+        <div id="report-form-view" class="p-5 sm:p-6 space-y-5">
+            <!-- Anime Context Badge -->
+            <div class="p-3.5 rounded-2xl bg-[#0E0E12] border border-white/10 space-y-1.5">
+                <div class="flex items-center justify-between">
+                    <span class="text-[10px] font-mono text-[#FFCC00] uppercase font-bold tracking-wider">Target Anime</span>
+                    <span id="report-server-name" class="text-[10px] font-mono text-gray-400 bg-white/5 px-2 py-0.5 rounded border border-white/10">Server</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <h4 id="report-anime-title" class="text-sm font-bold text-white font-title truncate">Anime Title</h4>
+                    <span id="report-ep-num" class="px-2 py-0.5 rounded bg-[#FFCC00] text-[#17171B] font-extrabold text-[10px] font-title shrink-0">Episode 1</span>
+                </div>
+            </div>
+
+            <!-- Problem Selector -->
+            <div class="space-y-2.5">
+                <label class="text-xs font-bold font-title text-gray-300">Pilih Jenis Kendala / Masalah:</label>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                    <label class="flex items-center gap-2.5 p-3 rounded-xl bg-white/5 border border-white/10 hover:border-[#FFCC00] hover:bg-white/10 cursor-pointer transition-all">
+                        <input type="radio" name="report_issue_type" value="video_broken" data-label="Video Blank / Tidak Bisa Diputar" checked class="accent-[#FFCC00]">
+                        <span class="text-xs text-gray-200">🔴 Layar Hitam / Rusak</span>
+                    </label>
+
+                    <label class="flex items-center gap-2.5 p-3 rounded-xl bg-white/5 border border-white/10 hover:border-[#FFCC00] hover:bg-white/10 cursor-pointer transition-all">
+                        <input type="radio" name="report_issue_type" value="server_down" data-label="Server Mati / Loading Terus" class="accent-[#FFCC00]">
+                        <span class="text-xs text-gray-200">🟡 Server Loading Terus</span>
+                    </label>
+
+                    <label class="flex items-center gap-2.5 p-3 rounded-xl bg-white/5 border border-white/10 hover:border-[#FFCC00] hover:bg-white/10 cursor-pointer transition-all">
+                        <input type="radio" name="report_issue_type" value="subtitle_missing" data-label="Subtitle Hilang / Teks Rusak" class="accent-[#FFCC00]">
+                        <span class="text-xs text-gray-200">🔵 Subtitle Hilang / Rusak</span>
+                    </label>
+
+                    <label class="flex items-center gap-2.5 p-3 rounded-xl bg-white/5 border border-white/10 hover:border-[#FFCC00] hover:bg-white/10 cursor-pointer transition-all">
+                        <input type="radio" name="report_issue_type" value="audio_broken" data-label="Suara / Audio Bisu atau Rusak" class="accent-[#FFCC00]">
+                        <span class="text-xs text-gray-200">🟣 Suara Bisu / Rusak</span>
+                    </label>
+
+                    <label class="flex items-center gap-2.5 p-3 rounded-xl bg-white/5 border border-white/10 hover:border-[#FFCC00] hover:bg-white/10 cursor-pointer transition-all">
+                        <input type="radio" name="report_issue_type" value="wrong_ep" data-label="Episode Tertukar / Salah Judul" class="accent-[#FFCC00]">
+                        <span class="text-xs text-gray-200">🟠 Episode Tertukar</span>
+                    </label>
+
+                    <label class="flex items-center gap-2.5 p-3 rounded-xl bg-white/5 border border-white/10 hover:border-[#FFCC00] hover:bg-white/10 cursor-pointer transition-all">
+                        <input type="radio" name="report_issue_type" value="other" data-label="Masalah Lainnya" class="accent-[#FFCC00]">
+                        <span class="text-xs text-gray-200">⚪ Masalah Lainnya</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Notes -->
+            <div class="space-y-1.5">
+                <label for="report-note" class="text-xs font-bold font-title text-gray-300">Catatan Tambahan (Opsional):</label>
+                <textarea id="report-note" rows="2" placeholder="Contoh: Menit ke 05:20 video macet atau subtitle tidak sync..."
+                    class="w-full bg-[#0E0E12] border border-white/10 rounded-xl p-3 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#FFCC00] transition-colors"></textarea>
+            </div>
+
+            <!-- Reporter Info & Action -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-white/10">
+                <div class="text-[11px] text-gray-400">
+                    <span>Pelapor: </span>
+                    <strong class="text-white">{{if .User}}@{{.User.Username}}{{else}}Tamu / Guest (Anonim){{end}}</strong>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="closeErrorReportModal()"
+                        class="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-gray-300 hover:text-white font-bold text-xs transition-colors font-title">
+                        Batal
+                    </button>
+                    <button type="button" id="report-submit-btn" onclick="submitAnimeReport(event)"
+                        class="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs transition-all shadow-lg flex items-center gap-2 font-title cursor-pointer">
+                        <i data-lucide="send" class="w-4 h-4"></i> Kirim Laporan
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Success Screen -->
+        <div id="report-success-view" class="p-8 text-center space-y-4" style="display: none;">
+            <div class="w-16 h-16 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center mx-auto shadow-lg">
+                <i data-lucide="check-circle-2" class="w-8 h-8"></i>
+            </div>
+            <div class="space-y-1">
+                <h3 class="text-lg font-extrabold text-white font-title">Laporan Berhasil Terkirim!</h3>
+                <p class="text-xs text-gray-300 max-w-sm mx-auto leading-relaxed">
+                    Terima kasih telah melapor. Laporan kamu langsung masuk ke Dashboard Admin Nyamimo dan akan segera ditindaklanjuti.
+                </p>
+            </div>
+            <button onclick="closeErrorReportModal()" class="px-6 py-2 rounded-xl bg-[#FFCC00] text-[#17171B] font-extrabold text-xs font-title shadow">
+                Tutup
+            </button>
+        </div>
+
+    </div>
+</div>
+{{end}}

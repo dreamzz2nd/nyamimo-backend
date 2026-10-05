@@ -1,0 +1,89 @@
+{{define "section"}}
+<div class="px-4 sm:px-6 lg:px-8 max-w-[1720px] mx-auto my-8 space-y-4">
+    <!-- Section Header -->
+    <div class="flex items-center justify-between border-b border-[#E2E2DC] pb-3">
+        <h2 class="text-lg sm:text-2xl font-bold font-title tracking-tight flex items-center gap-3 text-[#1A1A1E]">
+            <span class="w-2 h-6 bg-[#FFCC00] rounded-sm"></span>
+            {{.Title}}
+            {{if eq .Variant "ongoing"}}
+                <span class="px-2.5 py-0.5 rounded-lg text-[11px] font-bold bg-[#17171B] text-[#FFCC00] border border-[#17171B] uppercase tracking-wider ml-1">Update Tiap Hari</span>
+            {{else if eq .Variant "completed"}}
+                <span class="px-2.5 py-0.5 rounded-lg text-[11px] font-bold bg-white text-emerald-600 border border-[#E2E2DC] uppercase tracking-wider ml-1">Tamat</span>
+            {{end}}
+        </h2>
+
+        {{if .SeeAllHref}}
+        <a href="{{.SeeAllHref}}" class="text-xs font-bold font-title text-[#1A1A1E] hover:text-[#FFCC00] flex items-center gap-1 transition-colors">
+            Lihat Semua <i data-lucide="chevron-right" class="w-4 h-4"></i>
+        </a>
+        {{end}}
+    </div>
+
+    <!-- Swiper Carousel Container -->
+    <div class="swiper section-swiper-{{.ID}} relative group/swiper">
+        <div class="swiper-wrapper py-2">
+            {{range $idx, $anime := .AnimeList}}
+            <div class="swiper-slide !w-40 sm:!w-48 md:!w-52 lg:!w-56">
+                <article class="group relative flex flex-col space-y-2 cursor-pointer">
+                    <div class="aspect-[3/4] w-full rounded-xl overflow-hidden bg-white relative border border-[#E2E2DC] group-hover:border-[#FFCC00] transition-colors shadow-sm">
+                        <a href="/anime/{{$anime.Slug}}" class="block w-full h-full">
+                            <img 
+                                src="{{$anime.Img}}" 
+                                alt="{{$anime.Title}}" 
+                                loading="lazy" 
+                                decoding="async" 
+                                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                            
+                            <!-- HD Badge -->
+                            <span class="absolute top-2 left-2 px-2 py-0.5 text-[10px] font-bold rounded-md bg-[#FFCC00] text-[#17171B] border border-[#FFCC00] shadow">
+                                HD
+                            </span>
+
+                            <!-- Episode Badge -->
+                            {{if $anime.Episode}}
+                            <span class="absolute bottom-2 right-2 px-1.5 py-0.5 text-[10px] font-bold rounded-md bg-[#17171B]/90 text-white border border-[#2B2B32]">
+                                {{$anime.Episode}}
+                            </span>
+                            {{end}}
+
+                            <!-- Play Overlay Icon -->
+                            <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/30">
+                                <div class="w-10 h-10 rounded-lg bg-[#FFCC00] text-[#17171B] flex items-center justify-center shadow">
+                                    <i data-lucide="play" class="w-5 h-5 fill-current ml-0.5"></i>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- Title & Details -->
+                    <div class="space-y-1">
+                        <a href="/anime/{{$anime.Slug}}" class="font-bold text-xs sm:text-sm text-[#1A1A1E] group-hover:text-[#17171B] transition-colors line-clamp-1 block" title="{{$anime.Title}}">
+                            {{$anime.Title}}
+                        </a>
+                        <div class="flex items-center justify-between text-[11px] text-[#55555B]">
+                            <span>{{if $anime.Type}}{{$anime.Type}}{{else}}Anime{{end}}</span>
+                            {{if $anime.Score}}
+                            <span class="text-[#1A1A1E] font-bold flex items-center gap-0.5">
+                                ★ {{$anime.Score}}
+                            </span>
+                            {{end}}
+                        </div>
+                    </div>
+                </article>
+            </div>
+            {{end}}
+        </div>
+    </div>
+
+    <script>
+        new Swiper('.section-swiper-{{.ID}}', {
+            slidesPerView: 'auto',
+            spaceBetween: 16,
+            freeMode: true,
+            grabCursor: true,
+        });
+        if (window.lucide) lucide.createIcons();
+    </script>
+</div>
+{{end}}

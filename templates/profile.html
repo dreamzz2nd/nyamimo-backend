@@ -1,0 +1,330 @@
+{{define "content"}}
+<div x-data="{ 
+        activeTab: 'history', 
+        items: (window.MyList ? MyList.getAll() : (JSON.parse(localStorage.getItem('animekudesu_mylist') || '[]'))), 
+        historyItems: (window.WatchHistory ? WatchHistory.get() : (JSON.parse(localStorage.getItem('nyamimo_watch_history') || '[]'))),
+        refresh() {
+            try {
+                if (window.WatchHistory) {
+                    this.historyItems = WatchHistory.get();
+                } else {
+                    this.historyItems = JSON.parse(localStorage.getItem('nyamimo_watch_history') || '[]');
+                }
+            } catch(e) { this.historyItems = []; }
+
+            try {
+                if (window.MyList) {
+                    this.items = MyList.getAll();
+                } else {
+                    this.items = JSON.parse(localStorage.getItem('animekudesu_mylist') || '[]');
+                }
+            } catch(e) { this.items = []; }
+
+            this.$nextTick(() => { if (window.lucide) lucide.createIcons(); });
+        }
+     }" 
+     x-init="
+        refresh();
+        if (window.WatchHistory && typeof WatchHistory.syncWithServer === 'function') {
+            WatchHistory.syncWithServer(() => refresh());
+        }
+        window.addEventListener('watch-history-updated', () => refresh());
+        window.addEventListener('mylist-updated', () => refresh());
+        window.addEventListener('focus', () => refresh());
+        window.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
+        window.addEventListener('storage', (e) => { if (e.key === 'nyamimo_watch_history' || e.key === 'animekudesu_mylist') refresh(); });
+     " 
+     class="max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    
+    <!-- Profile Account Card -->
+    <div class="bg-white border border-[#E2E2DC] rounded-2xl p-6 sm:p-8 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div class="flex items-center gap-5">
+            <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden bg-[#17171B] text-[#FFCC00] flex items-center justify-center font-extrabold text-2xl sm:text-3xl font-title shadow-md shrink-0 border border-[#E2E2DC]">
+                {{if .User}}
+                    {{if .User.Avatar}}
+                    <img src="{{.User.Avatar}}" alt="{{.User.Name}}" class="w-full h-full object-cover" />
+                    {{else}}
+                    {{.User.Name | firstChar}}
+                    {{end}}
+                {{else}}G{{end}}
+            </div>
+            <div class="space-y-1">
+                <div class="flex items-center gap-2">
+                    {{if .User}}
+                        {{if eq .User.Role "admin"}}
+                        <span class="px-2.5 py-0.5 rounded-md bg-[#17171B] text-[#FFCC00] font-extrabold text-[11px] uppercase tracking-wider font-title border border-[#17171B]">
+                            ★ ROLE ADMIN
+                        </span>
+                        {{else}}
+                        <span class="px-2.5 py-0.5 rounded-md bg-[#FFCC00] text-[#17171B] font-extrabold text-[11px] uppercase tracking-wider font-title">
+                            MEMBER USER
+                        </span>
+                        {{end}}
+                    {{else}}
+                    <span class="px-2.5 py-0.5 rounded-md bg-[#F6F5F0] border border-[#E2E2DC] text-[#55555B] font-extrabold text-[11px] uppercase tracking-wider font-title">
+                        TAMU / GUEST
+                    </span>
+                    {{end}}
+                </div>
+                <h1 class="text-2xl sm:text-3xl font-extrabold font-title text-[#1A1A1E]">
+                    {{if .User}}{{.User.Name}}{{else}}Pengunjung Nyamimo{{end}}
+                </h1>
+                <p class="text-xs text-[#55555B]">
+                    {{if .User}}@{{.User.Username}} • Riwayat tontonan tersinkron dengan Cloud Database Nyamimo{{else}}Silakan masuk untuk mengelola profil & menyimpan riwayat tontonan ke cloud.{{end}}
+                </p>
+            </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3 shrink-0">
+            {{if .User}}
+                {{if eq .User.Role "admin"}}
+                <a href="/admin" class="px-4 py-2.5 rounded-xl bg-[#FFCC00] hover:bg-[#e6b800] text-[#17171B] font-bold text-xs transition-colors flex items-center gap-2 font-title shadow-sm">
+                    <i data-lucide="shield-check" class="w-4 h-4"></i> Dashboard Admin
+                </a>
+                {{end}}
+                <a href="/logout" class="px-4 py-2.5 rounded-xl bg-[#F6F5F0] hover:bg-red-50 text-red-600 hover:text-red-700 font-bold text-xs border border-[#E2E2DC] transition-colors flex items-center gap-2 font-title">
+                    <i data-lucide="log-out" class="w-4 h-4"></i> Keluar (Logout)
+                </a>
+            {{else}}
+                <button type="button" @click="showLoginModal = true; loginView = 'options'" class="px-5 py-2.5 rounded-xl bg-[#17171B] hover:bg-[#212126] text-[#FFCC00] font-bold text-xs transition-colors flex items-center gap-2 font-title shadow-sm">
+                    <i data-lucide="log-in" class="w-4 h-4"></i> Masuk Akun
+                </button>
+                <button type="button" @click="showLoginModal = true; loginView = 'register'" class="px-5 py-2.5 rounded-xl bg-[#FFCC00] hover:bg-[#e6b800] text-[#17171B] font-bold text-xs transition-colors flex items-center gap-2 font-title shadow-sm cursor-pointer">
+                    <i data-lucide="user-plus" class="w-4 h-4"></i> Daftar Member
+                </button>
+            {{end}}
+        </div>
+    </div>
+
+    <!-- Video Player Settings Card -->
+    <div class="bg-white border border-[#E2E2DC] rounded-2xl p-6 sm:p-8 shadow-sm space-y-5">
+        <div class="flex items-center justify-between border-b border-[#E2E2DC] pb-4">
+            <div>
+                <h2 class="text-xl font-extrabold font-title text-[#1A1A1E] flex items-center gap-2.5">
+                    <span class="w-3 h-3 bg-[#FFCC00] rounded-sm"></span> Pengaturan Pemutar Video
+                </h2>
+                <p class="text-xs text-[#55555B] mt-1">Atur preferensi otomatisasi pemutar video & switch server anime.</p>
+            </div>
+        </div>
+
+        <form method="POST" action="/profile/settings" class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-2">
+            <div class="space-y-1.5">
+                <div class="flex items-center gap-2">
+                    <span class="font-bold text-sm text-[#1A1A1E] font-title">Otomatis Switch Server (Auto Fallback)</span>
+                    {{if .AutoSwitchServer}}
+                    <span class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-extrabold text-[11px] font-title">
+                        ● AKTIF (ON)
+                    </span>
+                    {{else}}
+                    <span class="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 font-extrabold text-[11px] font-title">
+                        ○ NONAKTIF (OFF)
+                    </span>
+                    {{end}}
+                </div>
+                <p class="text-xs text-[#55555B] max-w-xl">
+                    {{if .AutoSwitchServer}}
+                    Saat aktif, sistem akan otomatis beralih ke server cadangan jika server utama kosong/bermasalah.
+                    {{else}}
+                    Saat nonaktif, sistem akan secara ketat memuat <strong>Server #1 (Blogspot/Utama)</strong> tanpa dialihkan secara otomatis ke server lain.
+                    {{end}}
+                </p>
+            </div>
+
+            <div class="flex items-center gap-3 shrink-0">
+                <input type="hidden" name="auto_switch_server" value="{{if .AutoSwitchServer}}false{{else}}true{{end}}">
+                <button type="submit"
+                    class="px-5 py-2.5 rounded-xl font-bold text-xs transition-colors flex items-center gap-2 font-title border shadow-sm {{if .AutoSwitchServer}}bg-[#F6F5F0] hover:bg-red-50 text-red-600 border-[#E2E2DC]{{else}}bg-[#FFCC00] hover:bg-[#e6b800] text-[#17171B] border-[#FFCC00]{{end}}">
+                    <i data-lucide="{{if .AutoSwitchServer}}power-off{{else}}power{{end}}" class="w-4 h-4"></i>
+                    {{if .AutoSwitchServer}}Matikan Switch Server (OFF){{else}}Hidupkan Switch Server (ON){{end}}
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Tab Navigation & Header -->
+    <div class="border-b border-[#E2E2DC] pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div class="flex items-center gap-2 bg-[#F6F5F0] p-1.5 rounded-2xl border border-[#E2E2DC] self-start">
+            <button 
+                @click="activeTab = 'history'; refresh();" 
+                :class="activeTab === 'history' ? 'bg-[#17171B] text-[#FFCC00] shadow-sm font-bold' : 'text-[#55555B] hover:text-[#1A1A1E] font-medium'"
+                class="px-4 py-2 rounded-xl text-xs transition-all flex items-center gap-2 font-title cursor-pointer"
+            >
+                <i data-lucide="history" class="w-4 h-4"></i> Riwayat Tontonan
+                <template x-if="historyItems.length > 0">
+                    <span class="px-1.5 py-0.5 text-[10px] rounded-full bg-[#FFCC00] text-[#17171B] font-extrabold" x-text="historyItems.length"></span>
+                </template>
+            </button>
+
+            <button 
+                @click="activeTab = 'mylist'; refresh();" 
+                :class="activeTab === 'mylist' ? 'bg-[#17171B] text-[#FFCC00] shadow-sm font-bold' : 'text-[#55555B] hover:text-[#1A1A1E] font-medium'"
+                class="px-4 py-2 rounded-xl text-xs transition-all flex items-center gap-2 font-title cursor-pointer"
+            >
+                <i data-lucide="bookmark" class="w-4 h-4"></i> Favorit Saya
+                <template x-if="items.length > 0">
+                    <span class="px-1.5 py-0.5 text-[10px] rounded-full bg-[#FFCC00] text-[#17171B] font-extrabold" x-text="items.length"></span>
+                </template>
+            </button>
+        </div>
+
+        <div class="flex items-center gap-2">
+            <!-- Clear History Button -->
+            <button 
+                x-show="activeTab === 'history'"
+                @click="if(confirm('Hapus seluruh riwayat tontonan kamu?')) { WatchHistory.clear(); historyItems = []; location.reload(); }"
+                class="px-3.5 py-2 rounded-xl bg-[#F6F5F0] hover:bg-red-50 text-xs font-bold font-title text-[#55555B] hover:text-red-600 border border-[#E2E2DC] transition-colors flex items-center gap-1.5"
+            >
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Hapus Riwayat
+            </button>
+
+            <!-- Clear MyList Button -->
+            <button 
+                x-show="activeTab === 'mylist' && items.length > 0"
+                @click="if(confirm('Hapus semua dari My List?')) { localStorage.removeItem('animekudesu_mylist'); items = []; }"
+                class="px-3.5 py-2 rounded-xl bg-[#F6F5F0] hover:bg-red-50 text-xs font-bold font-title text-[#55555B] hover:text-red-600 border border-[#E2E2DC] transition-colors flex items-center gap-1.5"
+            >
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Hapus Favorit
+            </button>
+        </div>
+    </div>
+
+    <!-- TAB 1: WATCH HISTORY -->
+    <div x-show="activeTab === 'history'" class="space-y-6">
+        <template x-if="historyItems.length === 0">
+            <div class="text-center py-16 bg-white border border-[#E2E2DC] rounded-2xl space-y-4 shadow-sm">
+                <div class="w-14 h-14 rounded-2xl bg-[#F6F5F0] border border-[#E2E2DC] flex items-center justify-center text-[#55555B] mx-auto">
+                    <i data-lucide="history" class="w-7 h-7 text-[#FFCC00]"></i>
+                </div>
+                <h3 class="text-lg font-extrabold font-title text-[#1A1A1E]">Belum ada riwayat tontonan</h3>
+                <p class="text-xs text-[#55555B] max-w-md mx-auto">Silakan pilih dan tonton anime untuk mulai menyimpan riwayat tontonan secara otomatis.</p>
+                <a href="/popular" class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#FFCC00] hover:bg-[#e6b800] text-[#17171B] text-xs font-bold font-title transition-all shadow-md">
+                    <i data-lucide="play" class="w-4 h-4"></i> Jelajahi Anime
+                </a>
+            </div>
+        </template>
+
+        <!-- Watch History Grid (Poster Cards) -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6" x-show="historyItems.length > 0">
+            <template x-for="item in historyItems" :key="item.slug">
+                <div class="group relative bg-white border border-[#E2E2DC] hover:border-[#FFCC00] rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between">
+                    <div>
+                        <!-- Poster Image Container (Aspect 3/4) -->
+                        <a :href="item.link" class="block relative aspect-[3/4] overflow-hidden bg-[#17171B]">
+                            <img :src="item.img" :alt="item.title" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-70 group-hover:opacity-50 transition-opacity"></div>
+                            
+                            <!-- Episode Badge -->
+                            <div class="absolute top-2.5 left-2.5 flex items-center gap-1.5 z-10">
+                                <span class="px-2 py-0.5 rounded-md bg-[#FFCC00] text-[#17171B] font-black text-[10px] uppercase tracking-wider font-title shadow-sm" x-text="item.episode || 'Episode'"></span>
+                            </div>
+
+                            <!-- Timestamp Badge -->
+                            <div class="absolute top-2.5 right-2.5 z-10" x-show="item.time > 5">
+                                <span class="px-1.5 py-0.5 rounded-md bg-[#17171B]/80 backdrop-blur-sm border border-white/10 text-[#FFCC00] font-mono font-bold text-[10px] tracking-tight shadow-sm" x-text="'⏱️ ' + item.timeFormatted"></span>
+                            </div>
+
+                            <!-- Hover Play Overlay Icon -->
+                            <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                <div class="w-10 h-10 rounded-full bg-[#FFCC00] text-[#17171B] flex items-center justify-center shadow-lg transform group-hover:scale-110 transition-transform">
+                                    <i data-lucide="play" class="w-5 h-5 fill-current ml-0.5"></i>
+                                </div>
+                            </div>
+
+                            <!-- Playback Progress Bar (at bottom of poster) -->
+                            <div class="absolute bottom-0 left-0 right-0 h-1.5 bg-black/60 overflow-hidden" x-show="item.time > 5">
+                                <div class="h-full bg-[#FFCC00] transition-all duration-300" :style="'width: ' + (item.progressPercent > 0 ? item.progressPercent : 25) + '%'"></div>
+                            </div>
+                        </a>
+
+                        <!-- Card Info -->
+                        <div class="p-3 space-y-1.5">
+                            <h3 class="font-extrabold text-xs sm:text-sm text-[#1A1A1E] line-clamp-2 group-hover:text-[#FFCC00] transition-colors font-title leading-snug">
+                                <a :href="item.link" x-text="item.title"></a>
+                            </h3>
+                            <div class="flex items-center justify-between text-[10px] text-[#71717A] font-title" x-show="item.time > 5">
+                                <span class="flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3 text-[#FFCC00]"></i> Menit <strong class="text-[#1A1A1E]" x-text="item.timeFormatted"></strong></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="px-3 pb-3 pt-1 flex items-center justify-between gap-2 border-t border-[#F6F5F0]">
+                        <a :href="item.link" class="flex-1 py-1.5 px-2 rounded-xl bg-[#17171B] hover:bg-[#FFCC00] text-[#FFCC00] hover:text-[#17171B] font-bold text-[11px] font-title transition-all flex items-center justify-center gap-1 shadow-sm">
+                            <i data-lucide="play-circle" class="w-3.5 h-3.5 shrink-0"></i>
+                            <span class="truncate" x-text="item.time > 5 ? ('Lanjut ' + item.timeFormatted) : 'Lanjut'"></span>
+                        </a>
+                        <button 
+                            @click="WatchHistory.remove(item.slug); historyItems = WatchHistory.get()"
+                            class="p-1.5 text-[#71717A] hover:text-red-600 transition-colors rounded-lg hover:bg-red-50 shrink-0"
+                            title="Hapus dari Riwayat"
+                        >
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </div>
+
+    <!-- TAB 2: MY LIST / FAVORIT -->
+    <div x-show="activeTab === 'mylist'" class="space-y-6">
+        <!-- Empty State -->
+        <template x-if="items.length === 0">
+            <div class="text-center py-16 bg-white border border-[#E2E2DC] rounded-2xl space-y-4 shadow-sm">
+                <div class="w-14 h-14 rounded-2xl bg-[#F6F5F0] border border-[#E2E2DC] flex items-center justify-center text-[#55555B] mx-auto">
+                    <i data-lucide="bookmark-x" class="w-7 h-7 text-[#FFCC00]"></i>
+                </div>
+                <h3 class="text-lg font-extrabold font-title text-[#1A1A1E]">Belum ada anime di My List</h3>
+                <p class="text-xs text-[#55555B] max-w-sm mx-auto">Klik tombol "Favorit Saya" pada carousel atau kartu anime untuk menyimpannya di sini.</p>
+                <a href="/popular" class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#FFCC00] hover:bg-[#e6b800] text-[#17171B] text-xs font-bold font-title transition-colors shadow-md">
+                    <i data-lucide="compass" class="w-4 h-4"></i> Jelajahi Anime Sekarang
+                </a>
+            </div>
+        </template>
+
+        <!-- My List Grid (Poster Cards) -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6" x-show="items.length > 0">
+            <template x-for="item in items" :key="item.link">
+                <div class="group relative bg-white border border-[#E2E2DC] hover:border-[#FFCC00] rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between">
+                    <div>
+                        <!-- Poster Image Container (Aspect 3/4) -->
+                        <a :href="item.link" class="block relative aspect-[3/4] overflow-hidden bg-[#17171B]">
+                            <img :src="item.img" :alt="item.title" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity"></div>
+                            
+                            <!-- Hover Play Overlay Icon -->
+                            <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                <div class="w-10 h-10 rounded-full bg-[#FFCC00] text-[#17171B] flex items-center justify-center shadow-lg transform group-hover:scale-110 transition-transform">
+                                    <i data-lucide="play" class="w-5 h-5 fill-current ml-0.5"></i>
+                                </div>
+                            </div>
+                        </a>
+
+                        <!-- Card Info -->
+                        <div class="p-3">
+                            <h3 class="font-extrabold text-xs sm:text-sm text-[#1A1A1E] line-clamp-2 group-hover:text-[#FFCC00] transition-colors font-title leading-snug">
+                                <a :href="item.link" x-text="item.title"></a>
+                            </h3>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="px-3 pb-3 pt-1 flex items-center justify-between gap-2 border-t border-[#F6F5F0]">
+                        <a :href="item.link" class="flex-1 py-1.5 px-2 rounded-xl bg-[#17171B] hover:bg-[#FFCC00] text-[#FFCC00] hover:text-[#17171B] font-bold text-[11px] font-title transition-all flex items-center justify-center gap-1 shadow-sm">
+                            <i data-lucide="play-circle" class="w-3.5 h-3.5 shrink-0"></i>
+                            <span>Tonton</span>
+                        </a>
+                        <button 
+                            @click="MyList.toggle({link: item.link}); items = MyList.getAll()"
+                            class="p-1.5 text-[#71717A] hover:text-red-600 transition-colors rounded-lg hover:bg-red-50 shrink-0"
+                            title="Hapus dari Favorit"
+                        >
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </div>
+</div>
+{{end}}

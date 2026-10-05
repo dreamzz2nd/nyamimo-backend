@@ -1,0 +1,89 @@
+{{define "content"}}
+<div class="max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+    <!-- Top Headline & Indicator Banner -->
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-[#E2E2DC] pb-6">
+        <div>
+            <div class="flex items-center gap-2 mb-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-[#FFCC00]"></span>
+                <span class="font-title text-xs font-bold text-[#55555B] uppercase tracking-wider">Jadwal Rilis Mingguan</span>
+            </div>
+            <h1 class="font-title text-2xl sm:text-3xl font-bold text-[#1A1A1E] tracking-tight">Jadwal Tayang Anime</h1>
+            <p class="text-xs sm:text-sm text-[#55555B] mt-1">Waktu Indonesia Barat (WIB) • Diperbarui setiap hari secara realtime</p>
+        </div>
+        
+        <div class="flex items-center gap-2 shrink-0">
+            <button class="flex items-center gap-2 px-4 py-2 rounded-lg bg-white border border-[#E2E2DC] hover:border-[#FFCC00] transition-all text-[#1A1A1E] text-xs font-bold shadow-sm">
+                <i data-lucide="calendar" class="w-4 h-4 text-[#FFCC00]"></i>
+                <span>Langganan Jadwal Kalender Google</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Interactive Schedule Day Selector Bar -->
+    <div class="w-full bg-white border border-[#E2E2DC] rounded-xl p-2 shadow-sm">
+        <div class="flex items-center gap-2 overflow-x-auto scrollbar-none font-title">
+            <a href="/schedule?day=senin" class="flex flex-col items-center justify-center min-w-[100px] px-4 py-2.5 rounded-lg transition-all text-xs font-bold {{if eq .CurrentDay "senin"}}bg-[#FFCC00] text-[#17171B] shadow-sm{{else}}bg-[#F6F5F0] hover:bg-[#E2E2DC] text-[#1A1A1E] border border-[#E2E2DC]{{end}}">
+                <span>Senin</span>
+            </a>
+            <a href="/schedule?day=selasa" class="flex flex-col items-center justify-center min-w-[100px] px-4 py-2.5 rounded-lg transition-all text-xs font-bold {{if eq .CurrentDay "selasa"}}bg-[#FFCC00] text-[#17171B] shadow-sm{{else}}bg-[#F6F5F0] hover:bg-[#E2E2DC] text-[#1A1A1E] border border-[#E2E2DC]{{end}}">
+                <span>Selasa</span>
+            </a>
+            <a href="/schedule?day=rabu" class="flex flex-col items-center justify-center min-w-[100px] px-4 py-2.5 rounded-lg transition-all text-xs font-bold {{if eq .CurrentDay "rabu"}}bg-[#FFCC00] text-[#17171B] shadow-sm{{else}}bg-[#F6F5F0] hover:bg-[#E2E2DC] text-[#1A1A1E] border border-[#E2E2DC]{{end}}">
+                <span>Rabu</span>
+            </a>
+            <a href="/schedule?day=kamis" class="flex flex-col items-center justify-center min-w-[100px] px-4 py-2.5 rounded-lg transition-all text-xs font-bold {{if eq .CurrentDay "kamis"}}bg-[#FFCC00] text-[#17171B] shadow-sm{{else}}bg-[#F6F5F0] hover:bg-[#E2E2DC] text-[#1A1A1E] border border-[#E2E2DC]{{end}}">
+                <span>Kamis</span>
+            </a>
+            <a href="/schedule?day=jumat" class="flex flex-col items-center justify-center min-w-[100px] px-4 py-2.5 rounded-lg transition-all text-xs font-bold {{if eq .CurrentDay "jumat"}}bg-[#FFCC00] text-[#17171B] shadow-sm{{else}}bg-[#F6F5F0] hover:bg-[#E2E2DC] text-[#1A1A1E] border border-[#E2E2DC]{{end}}">
+                <span>Jumat</span>
+            </a>
+            <a href="/schedule?day=sabtu" class="flex flex-col items-center justify-center min-w-[100px] px-4 py-2.5 rounded-lg transition-all text-xs font-bold {{if eq .CurrentDay "sabtu"}}bg-[#FFCC00] text-[#17171B] shadow-sm{{else}}bg-[#F6F5F0] hover:bg-[#E2E2DC] text-[#1A1A1E] border border-[#E2E2DC]{{end}}">
+                <span>Sabtu</span>
+            </a>
+            <a href="/schedule?day=minggu" class="flex flex-col items-center justify-center min-w-[100px] px-4 py-2.5 rounded-lg transition-all text-xs font-bold {{if eq .CurrentDay "minggu"}}bg-[#FFCC00] text-[#17171B] shadow-sm{{else}}bg-[#F6F5F0] hover:bg-[#E2E2DC] text-[#1A1A1E] border border-[#E2E2DC]{{end}}">
+                <span>Minggu</span>
+            </a>
+        </div>
+    </div>
+
+    {{if .AnimeList}}
+    <!-- Anime Grid for Selected Day -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-6 pt-2">
+        {{range $idx, $anime := .AnimeList}}
+        <article class="group relative flex flex-col space-y-2 cursor-pointer">
+            <div class="aspect-[3/4] w-full rounded-xl overflow-hidden bg-white relative border border-[#E2E2DC] group-hover:border-[#FFCC00] transition-colors shadow-sm">
+                <a href="/anime/{{$anime.Slug}}" class="block w-full h-full">
+                    <img src="{{$anime.Img}}" alt="{{$anime.Title}}" loading="lazy" decoding="async" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                    {{if $anime.Time}}
+                    <span class="absolute top-2 right-2 px-2 py-0.5 text-[10px] font-bold rounded-md bg-[#17171B]/80 backdrop-blur-sm text-[#FFCC00] border border-[#17171B] shadow">
+                        {{$anime.Time}} WIB
+                    </span>
+                    {{end}}
+                    <span class="absolute top-2 left-2 px-2 py-0.5 text-[10px] font-bold rounded-md bg-[#FFCC00] text-[#17171B] border border-[#FFCC00] shadow">
+                        {{if $anime.Type}}{{$anime.Type}}{{else}}HD{{end}}
+                    </span>
+                </a>
+            </div>
+            <div class="space-y-1">
+                <a href="/anime/{{$anime.Slug}}" class="font-bold text-xs sm:text-sm text-[#1A1A1E] group-hover:text-[#FFCC00] transition-colors line-clamp-1 block" title="{{$anime.Title}}">{{$anime.Title}}</a>
+                <div class="text-[11px] text-[#55555B] flex items-center justify-between">
+                    <span>{{if $anime.Time}}Jam Rilis {{$anime.Time}} WIB{{else}}Episode Rilis Hari Ini{{end}}</span>
+                    {{if $anime.Score}}
+                    <span class="font-bold text-[#FFCC00]">★ {{$anime.Score}}</span>
+                    {{end}}
+                </div>
+            </div>
+        </article>
+        {{end}}
+    </div>
+    {{else}}
+    <div class="bg-white border border-[#E2E2DC] rounded-2xl p-12 text-center space-y-3 shadow-sm">
+        <div class="w-12 h-12 rounded-full bg-[#F6F5F0] flex items-center justify-center mx-auto text-[#55555B]">
+            <i data-lucide="calendar-x" class="w-6 h-6"></i>
+        </div>
+        <h3 class="font-title font-bold text-base text-[#1A1A1E]">Belum Ada Jadwal Rilis</h3>
+        <p class="text-xs text-[#55555B]">Tidak ada anime yang dijadwalkan tayang pada hari ini.</p>
+    </div>
+    {{end}}
+</div>
+{{end}}

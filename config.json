@@ -1,0 +1,139 @@
+{
+  "site_name": "Nyamimo",
+  "site_tagline": "Streaming Anime Sub Indo Tercepat \u0026 Terlengkap",
+  "site_logo": "/static/logo.png",
+  "site_favicon": "/static/logo.png",
+  "primary_color": "#FFCC00",
+  "api_provider": "animekudesu",
+  "api_base_url": "https://api.animekudesu.web.id",
+  "port": "3000",
+  "google_client_id": "",
+  "google_client_secret": "",
+  "gdrive": {
+    "enabled": false,
+    "folder_id": "1gzdooYCF_ZqPLmNODqNR-IoY8RjNa4BM",
+    "service_account_json": "",
+    "auto_sync_ongoing": false,
+    "resolutions": [
+      "1080p",
+      "720p"
+    ],
+    "total_storage_gb": 5120,
+    "used_storage_gb": 350.60000000000025,
+    "total_synced_episodes": 540,
+    "connected": false
+  },
+  "ads": {
+    "header_banner": {
+      "enabled": false,
+      "title": "Header Top Banner (728x90 / Responsive)",
+      "code": "\u003cdiv class=\"w-full max-w-4xl mx-auto my-2 p-3 bg-[#17171B]/5 border border-dashed border-[#FFCC00]/50 rounded-xl text-center text-xs text-[#55555B]\"\u003e🚀 Pasang Iklan Banner Header di Sini (Atur di Dashboard Admin)\u003c/div\u003e"
+    },
+    "below_player": {
+      "enabled": false,
+      "title": "Bawah Pemutar Video",
+      "code": "\u003cdiv class=\"w-full max-w-4xl mx-auto my-3 p-4 bg-[#FFCC00]/10 border border-dashed border-[#FFCC00] rounded-xl text-center text-xs font-bold text-[#17171B]\"\u003e🎬 Slot Iklan Bawah Player (Adsterra / Popunder / Banner)\u003c/div\u003e"
+    },
+    "popunder": {
+      "enabled": true,
+      "title": "In-Page Push / Direct Script (Head/Body Script)",
+      "code": "\u003cscript\u003e(function(s){s.dataset.zone='11921331',s.src='https://nap5k.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))\u003c/script\u003e"
+    },
+    "footer_banner": {
+      "enabled": false,
+      "title": "Footer Sticky / Bottom Banner",
+      "code": "\u003cdiv class=\"w-full max-w-4xl mx-auto my-2 p-3 bg-[#17171B]/5 border border-dashed border-[#E2E2DC] rounded-xl text-center text-xs text-[#55555B]\"\u003e📢 Pasang Iklan Footer di Sini\u003c/div\u003e"
+    },
+    "video_preroll": {
+      "enabled": false,
+      "title": "Video Pre-roll Ad (Gaya YouTube)",
+      "video_url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+      "target_link": "https://monetag.com",
+      "duration_seconds": 15,
+      "skip_after_seconds": 5
+    }
+  },
+  "watermark": {
+    "enabled": true,
+    "type": "image",
+    "text": "NYAMIMO",
+    "image_url": "/static/uploads/watermarks/watermark_1790741682709348300.png",
+    "position": "top-right",
+    "opacity": 0.55,
+    "size": "large",
+    "apply_to_web": true,
+    "apply_to_app": true
+  },
+  "app": {
+    "api_base_url": "https://api.animekudesu.web.id",
+    "latest_version_code": 1,
+    "latest_version_name": "v1.0.0",
+    "apk_download_url": "https://nyamimo.onrender.com",
+    "force_update": false,
+    "update_changelog": "- Streaming server lancar\n- Sinkronisasi riwayat nonton otomatis",
+    "streaming_enabled": true,
+    "announcement": {
+      "active": true,
+      "title": "Selamat Datang di Nyamimo App!",
+      "message": "Nikmati streaming anime kualitas HD tanpa buffering dengan server super cepat!",
+      "type": "info",
+      "action_url": ""
+    },
+    "welcome_screen": {
+      "enabled": true,
+      "title": "Selamat Datang",
+      "description": "Ingin tahu tentang konten anime paling populer di seluruh dunia? Semuanya ada di Nyamimo, jutaan episode anime luar biasa ada di sini! Ayo masuk dan jadi bagian dari kami!",
+      "background_image": "/static/welcome_bg.jpg",
+      "button_text": "MASUK",
+      "allow_skip": true
+    },
+    "hero_carousel": {
+      "enabled": true,
+      "auto_slide": true,
+      "interval_ms": 5000,
+      "slides": [
+        {
+          "id": "slide-1",
+          "title": "Solo Leveling: Arise",
+          "subtitle": "Aksi, Fantasi • Korea \u0026 Jepang • Full 12 Episode",
+          "badge": "TOP 1 REKOMENDASI",
+          "background_url": "https://images.alphacoders.com/134/1349544.jpeg",
+          "object_url": "https://pngimg.com/d/sword_PNG5509.png",
+          "action_type": "anime",
+          "target_slug": "solo-leveling",
+          "order": 1,
+          "is_active": true
+        },
+        {
+          "id": "slide-2",
+          "title": "Gachiakuta",
+          "subtitle": "Shounen, Aksi, Supranatural • Subtitle Indonesia • BONES",
+          "badge": "DOLBY AUDIO",
+          "background_url": "https://images.alphacoders.com/136/1367097.jpeg",
+          "object_url": "",
+          "action_type": "anime",
+          "target_slug": "gachiakuta",
+          "order": 2,
+          "is_active": true
+        },
+        {
+          "id": "slide-3",
+          "title": "Demon Slayer: Infinity Castle",
+          "subtitle": "Petualangan, Iblis • Movie \u0026 Series • Ultra HD 1080p",
+          "badge": "VIP EXCLUSIVE",
+          "background_url": "https://images.alphacoders.com/134/1340156.jpeg",
+          "object_url": "",
+          "action_type": "anime",
+          "target_slug": "kimetsu-no-yaiba",
+          "order": 3,
+          "is_active": true
+        }
+      ]
+    }
+  },
+  "blogger_player": {
+    "use_nyamimo_player": false,
+    "bottom_offset_px": 45,
+    "fullscreen_offset_px": 60
+  }
+}

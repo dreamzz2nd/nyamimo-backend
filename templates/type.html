@@ -1,0 +1,44 @@
+{{define "content"}}
+<div class="max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <div class="border-b border-[#E2E2DC] pb-4">
+        <h1 class="text-2xl sm:text-3xl font-extrabold font-title text-[#1A1A1E] tracking-tight flex items-center gap-2.5">
+            <span class="w-3 h-3 bg-[#FFCC00] rounded-sm"></span> Format Anime: {{.TypeName}}
+        </h1>
+        <p class="text-xs text-[#55555B] mt-1">Daftar anime berdasarkan jenis format rilis.</p>
+    </div>
+
+    <!-- Type Selection Buttons (Kinetic Yellow Filter Chips) -->
+    <div class="flex flex-wrap gap-2.5 font-title">
+        <a href="/type/tv" class="px-5 py-2 rounded-lg text-xs font-bold transition-colors {{if eq .CurrentType "tv"}}bg-[#FFCC00] text-[#17171B] shadow-sm{{else}}bg-white text-[#55555B] hover:text-[#1A1A1E] border border-[#E2E2DC]{{end}}">TV Series</a>
+        <a href="/type/ova" class="px-5 py-2 rounded-lg text-xs font-bold transition-colors {{if eq .CurrentType "ova"}}bg-[#FFCC00] text-[#17171B] shadow-sm{{else}}bg-white text-[#55555B] hover:text-[#1A1A1E] border border-[#E2E2DC]{{end}}">OVA</a>
+        <a href="/type/ona" class="px-5 py-2 rounded-lg text-xs font-bold transition-colors {{if eq .CurrentType "ona"}}bg-[#FFCC00] text-[#17171B] shadow-sm{{else}}bg-white text-[#55555B] hover:text-[#1A1A1E] border border-[#E2E2DC]{{end}}">ONA</a>
+        <a href="/type/special" class="px-5 py-2 rounded-lg text-xs font-bold transition-colors {{if eq .CurrentType "special"}}bg-[#FFCC00] text-[#17171B] shadow-sm{{else}}bg-white text-[#55555B] hover:text-[#1A1A1E] border border-[#E2E2DC]{{end}}">Special</a>
+        <a href="/type/movie" class="px-5 py-2 rounded-lg text-xs font-bold transition-colors {{if eq .CurrentType "movie"}}bg-[#FFCC00] text-[#17171B] shadow-sm{{else}}bg-white text-[#55555B] hover:text-[#1A1A1E] border border-[#E2E2DC]{{end}}">Movie</a>
+    </div>
+
+    <!-- Anime Grid List -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-6">
+        {{range $idx, $anime := .AnimeList}}
+        <article class="group relative flex flex-col space-y-2 cursor-pointer">
+            <div class="aspect-[3/4] w-full rounded-xl overflow-hidden bg-white relative border border-[#E2E2DC] group-hover:border-[#FFCC00] transition-colors shadow-sm">
+                <a href="/anime/{{$anime.Slug}}" class="block w-full h-full">
+                    <img src="{{$anime.Img}}" alt="{{$anime.Title}}" loading="lazy" decoding="async" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                    <span class="absolute top-2 left-2 px-2 py-0.5 text-[10px] font-bold rounded-md bg-[#FFCC00] text-[#17171B] border border-[#FFCC00] shadow">
+                        HD
+                    </span>
+                </a>
+            </div>
+            <div class="space-y-1">
+                <a href="/anime/{{$anime.Slug}}" class="font-bold text-xs sm:text-sm text-[#1A1A1E] group-hover:text-[#FFCC00] transition-colors line-clamp-1 block">{{$anime.Title}}</a>
+                <div class="flex items-center justify-between text-[11px] text-[#55555B]">
+                    <span>Format Rilis</span>
+                    {{if $anime.Score}}
+                    <span class="text-[#1A1A1E] font-bold">★ {{$anime.Score}}</span>
+                    {{end}}
+                </div>
+            </div>
+        </article>
+        {{end}}
+    </div>
+</div>
+{{end}}

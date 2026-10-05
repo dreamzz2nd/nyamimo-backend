@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: nyamimo-stream
+    env: go
+    rootDir: go-app
+    buildCommand: go build -o nyamimo-server main.go
+    startCommand: ./nyamimo-server
+    envVars:
+      - key: PORT
+        value: 3000

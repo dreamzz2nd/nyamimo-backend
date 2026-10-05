@@ -1,0 +1,800 @@
+{{define "layout"}}
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="monetag" content="b0986196dd3526e6fc320109aa0d4062">
+
+    <!-- Popunder / Direct Script Ad -->
+    {{getAdSlot "popunder"}}
+
+    {{$cfg := siteConfig}}
+    <!-- Primary Meta Tags -->
+    <title>{{if .Title}}{{.Title}} - {{$cfg.SiteName}}{{else}}{{$cfg.SiteName}} - {{$cfg.SiteTagline}}{{end}}</title>
+    <meta name="description"
+        content="{{if .MetaDescription}}{{.MetaDescription}}{{else}}Nonton anime subtitle Indonesia gratis kualitas HD 1080p di {{$cfg.SiteName}}. Update episode terbaru setiap hari!{{end}}">
+    <meta name="keywords"
+        content="{{if .MetaKeywords}}{{.MetaKeywords}}{{else}}{{$cfg.SiteName}}, nonton anime sub indo, stream anime gratis, anime subtitle indonesia, anime sub indo hd, download anime sub indo, anime 2026{{end}}">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <meta name="author" content="{{$cfg.SiteName}} Team">
+    <meta name="theme-color" content="{{if $cfg.PrimaryColor}}{{$cfg.PrimaryColor}}{{else}}#FFCC00{{end}}">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="/static/manifest.json">
+    <link rel="canonical" href="{{if .CanonicalURL}}{{.CanonicalURL}}{{else}}https://nyamimo.onrender.com{{end}}">
+    <link rel="shortcut icon" href="{{$cfg.SiteFavicon}}" type="image/png">
+    <link rel="apple-touch-icon" href="{{$cfg.SiteLogo}}">
+
+    <!-- Open Graph / Facebook / WhatsApp / Discord / Telegram -->
+    <meta property="og:locale" content="id_ID">
+    <meta property="og:type" content="{{if .OgType}}{{.OgType}}{{else}}website{{end}}">
+    <meta property="og:site_name" content="Nyamimo Anime Stream">
+    <meta property="og:title"
+        content="{{if .Title}}{{.Title}} - Nyamimo{{else}}Nyamimo - Nonton Anime Subtitle Indonesia Gratis HD{{end}}">
+    <meta property="og:description"
+        content="{{if .MetaDescription}}{{.MetaDescription}}{{else}}Nonton anime subtitle Indonesia gratis tanpa iklan kualitas HD di Nyamimo. Update episode terbaru setiap hari!{{end}}">
+    <meta property="og:url" content="{{if .CanonicalURL}}{{.CanonicalURL}}{{else}}https://nyamimo.onrender.com{{end}}">
+    <meta property="og:image"
+        content="{{if .OgImage}}{{.OgImage}}{{else}}https://nyamimo.onrender.com/static/logo.png{{end}}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="{{if .Title}}{{.Title}}{{else}}Nyamimo Anime Stream{{end}}">
+
+    <!-- Twitter Cards -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title"
+        content="{{if .Title}}{{.Title}} - Nyamimo{{else}}Nyamimo - Nonton Anime Subtitle Indonesia Gratis HD{{end}}">
+    <meta name="twitter:description"
+        content="{{if .MetaDescription}}{{.MetaDescription}}{{else}}Nonton anime subtitle Indonesia gratis tanpa iklan kualitas HD di Nyamimo. Update episode terbaru setiap hari!{{end}}">
+    <meta name="twitter:image"
+        content="{{if .OgImage}}{{.OgImage}}{{else}}https://nyamimo.onrender.com/static/logo.png{{end}}">
+
+    <!-- Schema.org JSON-LD Structured Data -->
+    {{if .JSONLD}}
+    <script type="application/ld+json">
+    {{.JSONLD}}
+    </script>
+    {{else}}
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Nyamimo",
+      "alternateName": ["Nyamimo Anime", "Nyamimo Stream"],
+      "url": "https://nyamimo.onrender.com",
+      "description": "Nonton anime subtitle Indonesia gratis tanpa iklan kualitas HD di Nyamimo.",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://nyamimo.onrender.com/search?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+    {{end}}
+
+    <!-- DNS Prefetch & Preconnect for High-Speed Asset Loading on Low-End Devices -->
+    <link rel="dns-prefetch" href="https://cdn.tailwindcss.com">
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+    <link rel="dns-prefetch" href="https://unpkg.com">
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com">
+    <link rel="dns-prefetch" href="https://api.animekudesu.web.id">
+    <link rel="dns-prefetch" href="https://wallpapercat.com">
+
+    <!-- Google Fonts: Space Grotesk & Plus Jakarta Sans with font-display swap -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'accent-yellow': '#FFCC00',
+                        'primary-yellow': '#FFCC00',
+                        'surface-light': '#F6F5F0',
+                        'surface-card': '#FFFFFF',
+                        'border-light': '#E2E2DC',
+                        'border-dark': '#2B2B32',
+                        'text-primary': '#1A1A1E',
+                        'text-secondary': '#55555B'
+                    },
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        title: ['"Space Grotesk"', 'sans-serif'],
+                        heading: ['"Space Grotesk"', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- Swiper CSS & JS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Hls.js & Artplayer.js for Custom Video Player -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/artplayer/dist/artplayer.js"></script>
+
+    <!-- Global Client Stores: WatchHistory, MyList, SearchHistory -->
+    <script>
+        var MyList = {
+            getKey: function() { return 'animekudesu_mylist'; },
+            getAll: function() {
+                try {
+                    return JSON.parse(localStorage.getItem(this.getKey())) || [];
+                } catch (e) { return []; }
+            },
+            has: function(link) {
+                return this.getAll().some(function(item) { return item.link === link; });
+            },
+            toggle: function(item) {
+                var list = this.getAll();
+                var index = list.findIndex(function(i) { return i.link === item.link; });
+                if (index >= 0) {
+                    list.splice(index, 1);
+                } else {
+                    list.push(item);
+                }
+                localStorage.setItem(this.getKey(), JSON.stringify(list));
+                window.dispatchEvent(new Event('mylist-updated'));
+                return index < 0;
+            }
+        };
+        window.MyList = MyList;
+
+        function formatWatchTime(sec) {
+            if (!sec || isNaN(sec) || sec <= 0) return '00:00';
+            var s = Math.floor(sec);
+            var hrs = Math.floor(s / 3600);
+            var mins = Math.floor((s % 3600) / 60);
+            var secs = s % 60;
+            if (hrs > 0) {
+                return (hrs < 10 ? '0' : '') + hrs + ':' + (mins < 10 ? '0' : '') + mins + ':' + (secs < 10 ? '0' : '') + secs;
+            }
+            return (mins < 10 ? '0' : '') + mins + ':' + (secs < 10 ? '0' : '') + secs;
+        }
+        window.formatWatchTime = formatWatchTime;
+
+        var WatchHistory = {
+            getKey: function() { return 'nyamimo_watch_history'; },
+            get: function() {
+                try {
+                    var raw = localStorage.getItem(this.getKey());
+                    if (!raw) return [];
+                    var parsed = JSON.parse(raw);
+                    if (!Array.isArray(parsed)) return [];
+                    return parsed.map(function(item) {
+                        if (!item) return null;
+                        var slug = (item.slug || '').toString().replace(/^["']+|["']+$/g, '').trim();
+                        if (!slug) return null;
+                        var epClean = (item.episodeNum || item.episode || '1').toString().replace(/^["']+|["']+$/g, '').replace(/^Episode\s*/i, '').trim();
+                        var epDisplay = 'Episode ' + epClean;
+                        var title = (item.title || '').toString().replace(/^["']+|["']+$/g, '').trim();
+                        var img = (item.img || '').toString().replace(/^["']+|["']+$/g, '').trim();
+                        var watchTime = parseFloat(item.time || item.currentTime || 0) || 0;
+                        var duration = parseFloat(item.duration || 0) || 0;
+                        var progressPercent = duration > 0 ? Math.min(100, Math.round((watchTime / duration) * 100)) : 0;
+                        var cleanLink = '/anime/' + slug + '/?ep=' + encodeURIComponent(epClean) + (watchTime > 5 ? ('&t=' + Math.floor(watchTime)) : '');
+                        return {
+                            slug: slug,
+                            title: title,
+                            img: img,
+                            episode: epDisplay,
+                            episodeNum: epClean,
+                            episodeTitle: (item.episodeTitle || '').toString().replace(/^["']+|["']+$/g, '').trim(),
+                            time: Math.floor(watchTime),
+                            duration: Math.floor(duration),
+                            timeFormatted: formatWatchTime(watchTime),
+                            durationFormatted: formatWatchTime(duration),
+                            progressPercent: progressPercent,
+                            link: cleanLink,
+                            updatedAt: item.updatedAt || Date.now()
+                        };
+                    }).filter(Boolean);
+                } catch (e) {
+                    return [];
+                }
+            },
+            getBySlug: function(slug) {
+                if (!slug) return null;
+                var cleanSlug = slug.toString().replace(/^["']+|["']+$/g, '').trim();
+                var list = this.get();
+                return list.find(function(item) { return item.slug === cleanSlug; }) || null;
+            },
+            getLastWatchedEp: function(slug) {
+                var item = this.getBySlug(slug);
+                return item ? (item.episodeNum || item.episode) : null;
+            },
+            syncProgressToServer: function(item) {
+                try {
+                    if (!item || !item.slug) return;
+                    fetch('/api/history/progress', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            slug: item.slug,
+                            title: item.title,
+                            img: item.img,
+                            episode: item.episode,
+                            episodeNum: item.episodeNum,
+                            episodeTitle: item.episodeTitle,
+                            time: item.time,
+                            duration: item.duration
+                        }),
+                        keepalive: true
+                    }).catch(function(){});
+                } catch(e) {}
+            },
+            syncWithServer: function(callback) {
+                var self = this;
+                fetch('/api/history')
+                    .then(function(res) { return res.json(); })
+                    .then(function(data) {
+                        if (data && data.status === 'ok' && Array.isArray(data.items)) {
+                            var localList = self.get();
+                            var map = {};
+                            localList.forEach(function(it) { if (it && it.slug) map[it.slug] = it; });
+                            data.items.forEach(function(it) {
+                                if (it && it.slug) {
+                                    if (!map[it.slug] || (it.updatedAt > (map[it.slug].updatedAt || 0))) {
+                                        map[it.slug] = it;
+                                    }
+                                }
+                            });
+                            var merged = Object.values(map);
+                            merged.sort(function(a, b) { return (b.updatedAt || 0) - (a.updatedAt || 0); });
+                            if (merged.length > 50) merged = merged.slice(0, 50);
+                            localStorage.setItem(self.getKey(), JSON.stringify(merged));
+                            window.dispatchEvent(new Event('watch-history-updated'));
+                            if (typeof callback === 'function') callback(merged);
+                        }
+                    })
+                    .catch(function(e) {
+                        if (typeof callback === 'function') callback(self.get());
+                    });
+            },
+            add: function(entry) {
+                if (!entry || !entry.slug) return;
+                var cleanSlug = entry.slug.toString().replace(/^["']+|["']+$/g, '').trim();
+                if (!cleanSlug) return;
+                var list = this.get();
+                var existing = list.find(function(item) { return item.slug === cleanSlug; });
+                list = list.filter(function(item) { return item.slug !== cleanSlug; });
+                var epClean = (entry.episodeNum || entry.episode || (existing ? existing.episodeNum : '1')).toString().replace(/^["']+|["']+$/g, '').replace(/^Episode\s*/i, '').trim();
+                var epDisplay = 'Episode ' + epClean;
+                var cleanTitle = (entry.title || (existing ? existing.title : '')).toString().replace(/^["']+|["']+$/g, '').trim();
+                var cleanImg = (entry.img || (existing ? existing.img : '')).toString().replace(/^["']+|["']+$/g, '').trim();
+                
+                var watchTime = typeof entry.time !== 'undefined' ? parseFloat(entry.time) : (existing && existing.episodeNum === epClean ? existing.time : 0);
+                var duration = typeof entry.duration !== 'undefined' ? parseFloat(entry.duration) : (existing && existing.episodeNum === epClean ? existing.duration : 0);
+                if (isNaN(watchTime)) watchTime = 0;
+                if (isNaN(duration)) duration = 0;
+                var progressPercent = duration > 0 ? Math.min(100, Math.round((watchTime / duration) * 100)) : 0;
+                var cleanLink = '/anime/' + cleanSlug + '/?ep=' + encodeURIComponent(epClean) + (watchTime > 5 ? ('&t=' + Math.floor(watchTime)) : '');
+
+                var newItem = {
+                    slug: cleanSlug,
+                    title: cleanTitle,
+                    img: cleanImg,
+                    episode: epDisplay,
+                    episodeNum: epClean,
+                    episodeTitle: (entry.episodeTitle || (existing ? existing.episodeTitle : '')).toString().replace(/^["']+|["']+$/g, '').trim(),
+                    time: Math.floor(watchTime),
+                    duration: Math.floor(duration),
+                    timeFormatted: formatWatchTime(watchTime),
+                    durationFormatted: formatWatchTime(duration),
+                    progressPercent: progressPercent,
+                    link: cleanLink,
+                    updatedAt: Date.now()
+                };
+                list.unshift(newItem);
+                if (list.length > 50) list = list.slice(0, 50);
+                try {
+                    localStorage.setItem(this.getKey(), JSON.stringify(list));
+                    console.log('[WatchHistory] Successfully saved:', newItem.title, '(' + newItem.episode + ')', 'Slug:', newItem.slug);
+                } catch(e) {
+                    console.error('Failed to save to localStorage:', e);
+                }
+                this.syncProgressToServer(newItem);
+                window.dispatchEvent(new CustomEvent('watch-history-updated', { detail: newItem }));
+                return newItem;
+            },
+            remove: function(slug) {
+                var cleanSlug = (slug || '').toString().replace(/^["']+|["']+$/g, '').trim();
+                var list = this.get().filter(function(item) { return item.slug !== cleanSlug; });
+                localStorage.setItem(this.getKey(), JSON.stringify(list));
+                fetch('/api/history/delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ slug: cleanSlug })
+                }).catch(function(){});
+                window.dispatchEvent(new Event('watch-history-updated'));
+            },
+            clear: function() {
+                localStorage.removeItem(this.getKey());
+                fetch('/api/history/delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ all: true })
+                }).catch(function(){});
+                window.dispatchEvent(new Event('watch-history-updated'));
+            }
+        };
+        window.WatchHistory = WatchHistory;
+
+        // Auto-sync watch history with server on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.WatchHistory && typeof WatchHistory.syncWithServer === 'function') {
+                WatchHistory.syncWithServer();
+            }
+        });
+
+        // Smart link enhancer: when user clicks an anime card anywhere, navigate directly to last watched episode and timestamp if present
+        document.addEventListener('click', function (e) {
+            var a = e.target.closest('a');
+            if (!a || !a.href) return;
+            try {
+                var url = new URL(a.href, window.location.origin);
+                if (url.origin === window.location.origin && url.pathname.startsWith('/anime/')) {
+                    var parts = url.pathname.split('/').filter(Boolean);
+                    if (parts.length === 2 && !url.searchParams.has('ep') && !url.searchParams.has('first') && window.WatchHistory) {
+                        var slug = parts[1].replace(/^["']+|["']+$/g, '').trim();
+                        var lastWatched = WatchHistory.getBySlug(slug);
+                        if (lastWatched && lastWatched.episodeNum) {
+                            url.pathname = '/anime/' + slug + '/';
+                            url.searchParams.set('ep', lastWatched.episodeNum);
+                            if (lastWatched.time > 5) {
+                                url.searchParams.set('t', lastWatched.time);
+                            }
+                            a.href = url.pathname + '?' + url.searchParams.toString();
+                        }
+                    }
+                }
+            } catch (err) {}
+        }, true);
+
+        var SearchHistory = {
+            getKey: function() { return 'nyamimo_search_history'; },
+            get: function() {
+                try { return JSON.parse(localStorage.getItem(this.getKey())) || []; }
+                catch (e) { return []; }
+            },
+            add: function(query) {
+                if (!query || !query.trim()) return;
+                var list = this.get().filter(function(q) { return q.toLowerCase() !== query.trim().toLowerCase(); });
+                list.unshift(query.trim());
+                if (list.length > 8) list = list.slice(0, 8);
+                localStorage.setItem(this.getKey(), JSON.stringify(list));
+            },
+            clear: function() {
+                localStorage.removeItem(this.getKey());
+                if (typeof renderSearchHistory === 'function') renderSearchHistory();
+            },
+            remove: function(query) {
+                var list = this.get().filter(function(q) { return q !== query; });
+                localStorage.setItem(this.getKey(), JSON.stringify(list));
+                if (typeof renderSearchHistory === 'function') renderSearchHistory();
+            }
+        };
+        window.SearchHistory = SearchHistory;
+    </script>
+
+    <style>
+        body {
+            background-color: #F6F5F0;
+            color: #1A1A1E;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .hero-swiper .swiper-pagination-bullet {
+            width: 10px;
+            height: 10px;
+            background: #A0A0A8;
+            opacity: 0.4;
+            border-radius: 4px;
+        }
+
+        .hero-swiper .swiper-pagination-bullet-active {
+            background: #FFCC00 !important;
+            opacity: 1 !important;
+            width: 28px !important;
+            border-radius: 4px !important;
+        }
+
+        /* Custom Kinetic Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #F6F5F0;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #E2E2DC;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #FFCC00;
+        }
+
+        /* ─── Low-Spec Device & Mobile Performance Enhancements ─── */
+        html {
+            text-rendering: optimizeSpeed;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Prevent layout thrashing on image decoding */
+        img {
+            content-visibility: auto;
+        }
+
+        /* Hardware Acceleration for dynamic interactive elements */
+        .swiper-slide, .hero-swiper, .group {
+            transform: translateZ(0);
+            backface-visibility: hidden;
+        }
+
+        /* Reduced motion / GPU fallback for power saving */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
+        }
+    </style>
+</head>
+
+<body x-data="{ 
+        showLoginModal: (new URLSearchParams(window.location.search)).has('login_error') || (new URLSearchParams(window.location.search)).has('register_error') || (new URLSearchParams(window.location.search)).has('show_login') || (new URLSearchParams(window.location.search)).has('show_register'), 
+        loginView: ((new URLSearchParams(window.location.search)).has('register_error') || (new URLSearchParams(window.location.search)).has('show_register')) ? 'register' : (((new URLSearchParams(window.location.search)).has('login_error') || (new URLSearchParams(window.location.search)).has('show_login')) ? 'form' : 'options'), 
+        loginErrorMessage: (new URLSearchParams(window.location.search)).get('login_error') || (new URLSearchParams(window.location.search)).get('register_error') || '' 
+    }"
+    class="bg-[#F6F5F0] text-[#1A1A1E] antialiased min-h-screen flex flex-col justify-between selection:bg-[#FFCC00] selection:text-[#17171B]">
+
+    <!-- Navbar -->
+    {{template "navbar" .}}
+
+    <!-- Header Banner Ad Slot -->
+    {{$headerAd := getAdSlot "header_banner"}}
+    {{if $headerAd}}
+    <div class="w-full max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+        {{$headerAd}}
+    </div>
+    {{end}}
+
+    <!-- Main Content -->
+    <main class="flex-grow pb-24 md:pb-0">
+        {{template "content" .}}
+    </main>
+
+    <!-- Footer Banner Ad Slot -->
+    {{$footerAd := getAdSlot "footer_banner"}}
+    {{if $footerAd}}
+    <div class="w-full max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 pb-4">
+        {{$footerAd}}
+    </div>
+    {{end}}
+
+    <!-- Footer -->
+    {{template "footer" .}}
+
+    <!-- Global Modal Container for HTMX -->
+    <div id="modal-container"></div>
+
+    <script>
+        function toggleFullScreenPlayer() {
+            const target = document.getElementById('player-iframe-container') || document.getElementById('player-iframe');
+            if (!target) return;
+            if (document.fullscreenElement) {
+                if (document.exitFullscreen) document.exitFullscreen();
+                else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+            } else {
+                if (target.requestFullscreen) target.requestFullscreen();
+                else if (target.webkitRequestFullscreen) target.webkitRequestFullscreen();
+                else if (target.mozRequestFullScreen) target.mozRequestFullScreen();
+                else if (target.msRequestFullscreen) target.msRequestFullscreen();
+            }
+        }
+
+        document.body.addEventListener('htmx:afterSwap', function () {
+            if (window.lucide) lucide.createIcons();
+        });
+        document.addEventListener('DOMContentLoaded', function () {
+            if (window.lucide) lucide.createIcons();
+        });
+
+        function renderSearchHistory() {
+            const chipsContainer = document.getElementById('search-history-chips');
+            const clearBtn = document.getElementById('btn-clear-history');
+            const wrapper = document.getElementById('search-history-wrapper');
+            if (!chipsContainer) return;
+
+            const list = SearchHistory.get();
+            if (list.length === 0) {
+                if (wrapper) wrapper.style.display = 'none';
+                return;
+            }
+
+            if (wrapper) wrapper.style.display = 'block';
+            if (clearBtn) clearBtn.classList.remove('hidden');
+
+            chipsContainer.innerHTML = list.map(q => `
+                <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#F6F5F0] hover:bg-[#E2E2DC] text-[#1A1A1E] text-xs font-semibold border border-[#E2E2DC] transition-colors group cursor-pointer" onclick="executeHistorySearch('${q.replace(/'/g, "\\'")}')">
+                    <span>${q}</span>
+                    <button type="button" onclick="event.stopPropagation(); SearchHistory.remove('${q.replace(/'/g, "\\'")}')" class="text-[#55555B] hover:text-red-600 opacity-60 group-hover:opacity-100 transition-opacity" title="Hapus keyword ini">
+                        <i data-lucide="x" class="w-3 h-3"></i>
+                    </button>
+                </div>
+            `).join('');
+
+            if (window.lucide) lucide.createIcons();
+        }
+
+        function clearSearchHistory() {
+            SearchHistory.clear();
+        }
+
+        function executeHistorySearch(query) {
+            const searchInputs = document.querySelectorAll('input[name="q"]');
+            searchInputs.forEach(input => {
+                input.value = query;
+            });
+            const activeInput = document.querySelector('input[name="q"]:focus') || searchInputs[0];
+            if (activeInput) {
+                activeInput.focus();
+                htmx.trigger(activeInput, 'search');
+            }
+        }
+
+        // Real-time Heartbeat for Logged-In User Online Status Tracking
+        {{if .User}}
+        (function() {
+            function sendUserHeartbeat() {
+                if (document.visibilityState === 'visible') {
+                    fetch('/api/user/heartbeat', { method: 'POST' }).catch(function(){});
+                }
+            }
+            sendUserHeartbeat();
+            setInterval(sendUserHeartbeat, 25000); // 25-second interval
+            document.addEventListener('visibilitychange', function() {
+                if (document.visibilityState === 'visible') sendUserHeartbeat();
+            });
+            window.addEventListener('focus', function() {
+                sendUserHeartbeat();
+            });
+        })();
+        {{end}}
+
+        // Service Worker for Fast Mobile Offline Cache
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/static/sw.js').catch(function(){});
+            });
+        }
+    </script>
+    <!-- Global Login / Register Modal Popup (Bstation Style) -->
+    <div x-show="showLoginModal" x-transition.opacity
+        class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+        style="display: none;" @keydown.escape.window="showLoginModal = false">
+        <!-- Popup Box -->
+        <div @click.away="showLoginModal = false"
+            class="w-full max-w-md bg-white rounded-3xl p-6 sm:p-8 shadow-2xl relative space-y-6 animate-in fade-in zoom-in duration-200">
+            <!-- Close Button -->
+            <button type="button" @click="showLoginModal = false"
+                class="absolute top-5 right-5 w-8 h-8 rounded-full bg-[#F6F5F0] hover:bg-[#E2E2DC] flex items-center justify-center text-[#55555B] hover:text-[#1A1A1E] transition-colors"
+                title="Tutup">
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+
+            <!-- Header Title & Logo -->
+            <div class="text-center space-y-2 pt-2">
+                <div
+                    class="w-14 h-14 rounded-2xl bg-[#F6F5F0] border border-[#E2E2DC] p-2 flex items-center justify-center mx-auto shadow-sm">
+                    <img src="/static/logo.png" alt="Nyamimo Logo" class="w-full h-full object-contain" />
+                </div>
+                <h2 class="text-2xl font-extrabold font-title text-[#1A1A1E] tracking-tight"
+                    x-text="loginView === 'register' ? 'Daftar Member Nyamimo' : 'Login Nyamimo'">Login Nyamimo</h2>
+                <p x-show="loginView === 'register'" class="text-xs text-[#55555B]">Buat akun baru gratis untuk
+                    menikmati anime HD.</p>
+            </div>
+
+            <!-- Dynamic Error Alert -->
+            <template x-if="loginErrorMessage">
+                <div
+                    class="bg-red-50 border border-red-200 text-red-700 p-3.5 rounded-2xl text-xs font-bold flex items-center gap-2.5 shadow-sm">
+                    <i data-lucide="alert-circle" class="w-4 h-4 text-red-500 shrink-0"></i>
+                    <span x-text="loginErrorMessage"></span>
+                </div>
+            </template>
+
+            <!-- View 1: 2 Login Options (Google & Akun Nyamimo) -->
+            <div x-show="loginView === 'options'" class="space-y-3 py-2">
+                <!-- Option 1: Login dengan Google -->
+                <a href="/api/google-login"
+                    class="w-full py-3.5 px-4 rounded-xl border border-[#E2E2DC] hover:border-[#FFCC00] hover:bg-[#F6F5F0] text-[#1A1A1E] font-bold font-title text-sm flex items-center justify-center gap-3 transition-all shadow-sm group">
+                    <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24">
+                        <path fill="#4285F4"
+                            d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                        <path fill="#34A853"
+                            d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                        <path fill="#FBBC05"
+                            d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                        <path fill="#EA4335"
+                            d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                    </svg>
+                    <span>Login dengan Google</span>
+                </a>
+
+                <!-- Option 2: Login dengan Akun Nyamimo (Form) -->
+                <button type="button" @click="loginView = 'form'; loginErrorMessage = ''"
+                    class="w-full py-3.5 px-4 rounded-xl border border-[#E2E2DC] hover:border-[#FFCC00] hover:bg-[#F6F5F0] text-[#1A1A1E] font-bold font-title text-sm flex items-center justify-center gap-3 transition-all shadow-sm group">
+                    <i data-lucide="user" class="w-5 h-5 text-[#17171B] shrink-0"></i>
+                    <span>Login dengan Akun Nyamimo</span>
+                </button>
+            </div>
+
+            <!-- View 2: Form Input Username & Password -->
+            <div x-show="loginView === 'form'" style="display: none;" class="space-y-4">
+                <button type="button" @click="loginView = 'options'; loginErrorMessage = ''"
+                    class="text-xs text-[#55555B] font-bold hover:text-[#17171B] flex items-center gap-1 transition-colors">
+                    <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+                    <span>Kembali ke pilihan login</span>
+                </button>
+
+                <form action="/api/login" method="POST" class="space-y-4 text-xs font-semibold">
+                    <div class="space-y-1.5">
+                        <label class="text-[#1A1A1E] font-bold block">Username</label>
+                        <div class="relative flex items-center">
+                            <span class="absolute left-3.5 text-[#A0A0A8]">
+                                <i data-lucide="user" class="w-4 h-4"></i>
+                            </span>
+                            <input type="text" id="modal-login-username" name="username" required
+                                placeholder="Masukkan username kamu"
+                                class="w-full bg-[#F6F5F0] border border-[#E2E2DC] focus:border-[#FFCC00] focus:bg-white rounded-xl pl-10 pr-4 py-3 text-[#1A1A1E] text-xs font-medium outline-none transition-all" />
+                        </div>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="text-[#1A1A1E] font-bold block">Kata Sandi</label>
+                        <div class="relative flex items-center" x-data="{ showPass: false }">
+                            <span class="absolute left-3.5 text-[#A0A0A8]">
+                                <i data-lucide="lock" class="w-4 h-4"></i>
+                            </span>
+                            <input :type="showPass ? 'text' : 'password'" id="modal-login-password" name="password"
+                                required placeholder="Masukkan kata sandi"
+                                class="w-full bg-[#F6F5F0] border border-[#E2E2DC] focus:border-[#FFCC00] focus:bg-white rounded-xl pl-10 pr-10 py-3 text-[#1A1A1E] text-xs font-medium outline-none transition-all" />
+                            <button type="button" @click="showPass = !showPass"
+                                class="absolute right-3.5 text-[#A0A0A8] hover:text-[#17171B] transition-colors"
+                                title="Tampilkan / Sembunyikan Kata Sandi">
+                                <i x-show="!showPass" data-lucide="eye" class="w-4 h-4"></i>
+                                <i x-show="showPass" data-lucide="eye-off" class="w-4 h-4" style="display: none;"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between pt-1">
+                        <label
+                            class="flex items-center gap-2 cursor-pointer select-none text-[11px] text-[#55555B] font-medium">
+                            <input type="checkbox" checked
+                                class="rounded border-[#E2E2DC] text-[#FFCC00] focus:ring-0" />
+                            <span>Ingat Saya</span>
+                        </label>
+                    </div>
+
+                    <button type="submit"
+                        class="w-full py-3.5 rounded-xl bg-[#17171B] hover:bg-[#FFCC00] text-[#FFCC00] hover:text-[#17171B] font-bold font-title text-sm transition-all flex items-center justify-center gap-2 shadow-md group">
+                        <i data-lucide="log-in" class="w-4 h-4"></i>
+                        <span>Masuk Sekarang</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- View 3: Form Registrasi Akun -->
+            <div x-show="loginView === 'register'" style="display: none;" class="space-y-4">
+                <button type="button" @click="loginView = 'options'; loginErrorMessage = ''"
+                    class="text-xs text-[#55555B] font-bold hover:text-[#17171B] flex items-center gap-1 transition-colors">
+                    <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+                    <span>Kembali ke pilihan login</span>
+                </button>
+
+                <form action="/api/register" method="POST" class="space-y-3.5 text-xs font-semibold">
+                    <div class="space-y-1.5">
+                        <label class="text-[#1A1A1E] font-bold block">Nama Lengkap</label>
+                        <div class="relative flex items-center">
+                            <span class="absolute left-3.5 text-[#A0A0A8]">
+                                <i data-lucide="user-check" class="w-4 h-4"></i>
+                            </span>
+                            <input type="text" name="name" required placeholder="Nama Lengkap Kamu"
+                                class="w-full bg-[#F6F5F0] border border-[#E2E2DC] focus:border-[#FFCC00] focus:bg-white rounded-xl pl-10 pr-4 py-3 text-[#1A1A1E] text-xs font-medium outline-none transition-all" />
+                        </div>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="text-[#1A1A1E] font-bold block">Username</label>
+                        <div class="relative flex items-center">
+                            <span class="absolute left-3.5 text-[#A0A0A8]">
+                                <i data-lucide="user" class="w-4 h-4"></i>
+                            </span>
+                            <input type="text" name="username" required placeholder="Pilih username unik kamu"
+                                class="w-full bg-[#F6F5F0] border border-[#E2E2DC] focus:border-[#FFCC00] focus:bg-white rounded-xl pl-10 pr-4 py-3 text-[#1A1A1E] text-xs font-medium outline-none transition-all" />
+                        </div>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="text-[#1A1A1E] font-bold block">Kata Sandi</label>
+                        <div class="relative flex items-center" x-data="{ showRegPass: false }">
+                            <span class="absolute left-3.5 text-[#A0A0A8]">
+                                <i data-lucide="lock" class="w-4 h-4"></i>
+                            </span>
+                            <input :type="showRegPass ? 'text' : 'password'" name="password" required
+                                placeholder="Buat kata sandi minimal 6 karakter"
+                                class="w-full bg-[#F6F5F0] border border-[#E2E2DC] focus:border-[#FFCC00] focus:bg-white rounded-xl pl-10 pr-10 py-3 text-[#1A1A1E] text-xs font-medium outline-none transition-all" />
+                            <button type="button" @click="showRegPass = !showRegPass"
+                                class="absolute right-3.5 text-[#A0A0A8] hover:text-[#17171B] transition-colors"
+                                title="Tampilkan / Sembunyikan Kata Sandi">
+                                <i x-show="!showRegPass" data-lucide="eye" class="w-4 h-4"></i>
+                                <i x-show="showRegPass" data-lucide="eye-off" class="w-4 h-4"
+                                    style="display: none;"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="submit"
+                        class="w-full py-3.5 rounded-xl bg-[#17171B] hover:bg-[#FFCC00] text-[#FFCC00] hover:text-[#17171B] font-bold font-title text-sm transition-all flex items-center justify-center gap-2 shadow-md group mt-1">
+                        <i data-lucide="user-plus" class="w-4 h-4"></i>
+                        <span>Daftar Sekarang</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Terms Footer -->
+            <div class="pt-4 border-t border-[#E2E2DC] space-y-2.5 text-center text-[11px] text-[#55555B]">
+                <label class="flex items-start justify-center gap-2 cursor-pointer select-none leading-tight">
+                    <input type="checkbox" checked
+                        class="mt-0.5 rounded border-[#E2E2DC] text-[#FFCC00] focus:ring-0 shrink-0" />
+                    <span>Saya setuju dengan <a href="#" class="underline hover:text-[#17171B]">Syarat Layanan</a> & <a
+                            href="#" class="underline hover:text-[#17171B]">Kebijakan Privasi</a></span>
+                </label>
+                <div>
+                    <span x-show="loginView !== 'register'">
+                        Tidak punya akun? <button type="button"
+                            @click="loginView = 'register'; loginErrorMessage = ''; $nextTick(() => { if (window.lucide) lucide.createIcons(); })"
+                            class="font-extrabold text-[#17171B] underline hover:text-[#FFCC00] cursor-pointer">Registrasi
+                            Sekarang</button>
+                    </span>
+                    <span x-show="loginView === 'register'" style="display: none;">
+                        Sudah memiliki akun? <button type="button"
+                            @click="loginView = 'form'; loginErrorMessage = ''; $nextTick(() => { if (window.lucide) lucide.createIcons(); })"
+                            class="font-extrabold text-[#17171B] underline hover:text-[#FFCC00] cursor-pointer">Masuk di
+                            Sini</button>
+                    </span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</body>
+
+</html>
+{{end}}

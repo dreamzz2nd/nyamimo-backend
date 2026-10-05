@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  nyamimo-app:
+    build: .
+    container_name: nyamimo_anime_stream
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - SITE_NAME=Nyamimo
+      - API_BASE_URL=https://api.animekudesu.web.id
+    volumes:
+      - ./config.json:/app/config.json

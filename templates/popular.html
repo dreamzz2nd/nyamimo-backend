@@ -1,0 +1,116 @@
+{{define "content"}}
+<div class="max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+    <!-- Header & Live Metadata Bar -->
+    {{if eq .CurrentPage "search"}}
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-[#E2E2DC] pb-6">
+        <div class="flex flex-col gap-1">
+            <div class="flex items-center gap-2">
+                <span class="font-title text-[11px] text-[#55555B] uppercase font-bold tracking-wider">Hasil Pencarian Anime</span>
+                <span class="text-[#55555B]">•</span>
+                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-[#FFCC00] text-[#17171B] font-title text-[10px] font-extrabold shadow-sm">
+                    {{len .AnimeList}} Anime Ditemukan
+                </span>
+            </div>
+            <div class="flex items-baseline gap-3 flex-wrap">
+                <h1 class="font-title text-2xl md:text-3xl font-bold text-[#1A1A1E] tracking-tight">
+                    Hasil Pencarian: "{{.SearchQuery}}"
+                </h1>
+            </div>
+            <p class="text-xs text-[#55555B]">Menampilkan daftar anime dan season yang sesuai dengan kata kunci kamu.</p>
+        </div>
+    </div>
+    {{else}}
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-[#E2E2DC] pb-6">
+        <div class="flex flex-col gap-1">
+            <div class="flex items-center gap-2">
+                <span class="font-title text-[11px] text-[#55555B] uppercase font-bold tracking-wider">Leaderboard Anime</span>
+                <span class="text-[#55555B]">•</span>
+                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white border border-[#E2E2DC] text-[#1A1A1E] font-title text-[10px] font-bold shadow-sm">
+                    <span class="w-1.5 h-1.5 rounded-full bg-[#FFCC00]"></span>
+                    LIVE DATA
+                </span>
+            </div>
+            <div class="flex items-baseline gap-3 flex-wrap">
+                <h1 class="font-title text-2xl md:text-3xl font-bold text-[#1A1A1E] tracking-tight">Papan Peringkat Anime</h1>
+                <span class="text-xs text-[#55555B] font-medium">Musim Tayang 2026</span>
+            </div>
+            <div class="flex items-center gap-2 text-[#55555B] text-xs mt-1">
+                <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-[#FFCC00]"></i>
+                <span>Diperbarui setiap jam • Data agregat resmi penayangan dan retensi Nyamimo</span>
+            </div>
+        </div>
+
+        <!-- Metric Snapshot Pill -->
+        <div class="flex items-center gap-3 bg-white border border-[#E2E2DC] px-4 py-2.5 rounded-xl self-start md:self-auto shadow-sm">
+            <div class="w-8 h-8 rounded-lg bg-[#17171B] flex items-center justify-center text-[#FFCC00]">
+                <i data-lucide="trending-up" class="w-4 h-4"></i>
+            </div>
+            <div class="flex flex-col">
+                <span class="font-title text-[10px] uppercase tracking-wider text-[#55555B] font-semibold">Total Penonton Aktif</span>
+                <span class="font-title text-sm font-bold text-[#1A1A1E]">84.2M Tayangan</span>
+            </div>
+        </div>
+    </div>
+    {{end}}
+
+    {{if .Orders}}
+    <!-- Category Filter Tabs -->
+    <div class="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none font-title">
+        {{range .Orders}}
+        <a 
+            href="/popular?order={{.Order}}" 
+            class="px-4 py-2 rounded-lg text-xs font-bold transition-colors shrink-0 {{if eq $.CurrentOrder .Order}}bg-[#FFCC00] text-[#17171B] shadow-sm{{else}}bg-white text-[#55555B] hover:text-[#1A1A1E] hover:bg-[#F6F5F0] border border-[#E2E2DC]{{end}}"
+        >
+            {{.Title}}
+        </a>
+        {{end}}
+    </div>
+    {{end}}
+
+    <!-- Anime Grid List -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-6 pt-2">
+        {{range $idx, $anime := .AnimeList}}
+        {{$rank := add $idx 1}}
+        <article class="group relative flex flex-col space-y-2 cursor-pointer">
+            <div class="aspect-[3/4] w-full rounded-xl overflow-hidden bg-white relative border border-[#E2E2DC] group-hover:border-[#FFCC00] transition-colors shadow-sm">
+                <a href="/anime/{{$anime.Slug}}" class="block w-full h-full">
+                    <img src="{{$anime.Img}}" alt="{{$anime.Title}}" loading="lazy" decoding="async" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                    
+                    {{if eq $.CurrentPage "search"}}
+                        {{if $anime.SeasonBadge}}
+                        <span class="absolute top-2 left-2 px-2 py-1 rounded-lg font-title font-extrabold text-xs shadow bg-[#FFCC00] text-[#17171B] border border-[#FFCC00]">
+                            {{$anime.SeasonBadge}}
+                        </span>
+                        {{end}}
+                    {{else}}
+                        <!-- Rank Badge -->
+                        <span class="absolute top-2 left-2 w-7 h-7 rounded-lg flex items-center justify-center font-title font-extrabold text-xs shadow border {{if eq $rank 1}}bg-[#FFCC00] text-[#17171B] border-[#FFCC00]{{else if eq $rank 2}}bg-slate-200 text-slate-800 border-slate-300{{else if eq $rank 3}}bg-amber-600 text-white border-amber-600{{else}}bg-white/95 text-[#1A1A1E] border-[#E2E2DC]{{end}}">
+                            #{{$rank}}
+                        </span>
+                    {{end}}
+
+                    {{if $anime.Episode}}
+                    <span class="absolute bottom-2 right-2 px-1.5 py-0.5 text-[10px] font-bold rounded-md bg-[#17171B]/90 text-white border border-[#2B2B32]">
+                        {{$anime.Episode}}
+                    </span>
+                    {{end}}
+                </a>
+            </div>
+            <div class="space-y-1">
+                <a href="/anime/{{$anime.Slug}}" class="font-bold text-xs sm:text-sm text-[#1A1A1E] group-hover:text-[#FFCC00] transition-colors line-clamp-1 block" title="{{$anime.Title}}">
+                    {{$anime.Title}}
+                </a>
+                <div class="flex items-center justify-between text-[11px] text-[#55555B]">
+                    <span>{{if $anime.Type}}{{$anime.Type}}{{else}}Anime{{end}}</span>
+                    {{if $anime.Score}}
+                    <span class="text-[#1A1A1E] font-bold flex items-center gap-0.5">
+                        ★ {{$anime.Score}}
+                    </span>
+                    {{end}}
+                </div>
+            </div>
+        </article>
+        {{end}}
+    </div>
+</div>
+{{end}}
