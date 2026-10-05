@@ -862,8 +862,8 @@ func getDefaultConfig() AppConfig {
 		APIProvider:        "animekudesu",
 		APIBaseURL:         "https://api.animekudesu.web.id",
 		Port:               "3000",
-		GoogleClientID:     "",
-		GoogleClientSecret: "",
+		GoogleClientID:     "494465077307-bt9dlfv5ungb9gd7ectnln3auu77edlm.apps.googleusercontent.com",
+		GoogleClientSecret: "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",
 		GDrive: GDriveSettings{
 			Enabled:             false,
 			FolderID:            "",
@@ -4141,6 +4141,9 @@ func handleAdminGDriveAuth(w http.ResponseWriter, r *http.Request) {
 	if clientID == "" {
 		clientID = os.Getenv("GOOGLE_CLIENT_ID")
 	}
+	if clientID == "" {
+		clientID = "494465077307-bt9dlfv5ungb9gd7ectnln3auu77edlm.apps.googleusercontent.com"
+	}
 
 	redirectURI := getRedirectBaseURL(r) + "/api/auth/google/callback"
 	scope := "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email openid profile"
@@ -4170,11 +4173,11 @@ func handleAdminGDriveCallback(w http.ResponseWriter, r *http.Request) {
 	cfg := getAppConfig()
 	clientID := cfg.GoogleClientID
 	if clientID == "" {
-		clientID = os.Getenv("GOOGLE_CLIENT_ID")
+		clientID = "494465077307-bt9dlfv5ungb9gd7ectnln3auu77edlm.apps.googleusercontent.com"
 	}
 	clientSecret := cfg.GoogleClientSecret
 	if clientSecret == "" {
-		clientSecret = os.Getenv("GOOGLE_CLIENT_SECRET")
+		clientSecret = "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"
 	}
 
 	redirectURI := getRedirectBaseURL(r) + "/api/admin/gdrive/callback"
@@ -4627,6 +4630,9 @@ func handleGoogleLoginAPI(w http.ResponseWriter, r *http.Request) {
 	if clientID == "" {
 		clientID = os.Getenv("GOOGLE_CLIENT_ID")
 	}
+	if clientID == "" {
+		clientID = "494465077307-bt9dlfv5ungb9gd7ectnln3auu77edlm.apps.googleusercontent.com"
+	}
 
 	referer := r.Header.Get("Referer")
 	if referer == "" || strings.Contains(referer, "/login") || strings.Contains(referer, "/register") {
@@ -4651,10 +4657,16 @@ func handleGoogleCallbackAPI(w http.ResponseWriter, r *http.Request) {
 	if clientID == "" {
 		clientID = os.Getenv("GOOGLE_CLIENT_ID")
 	}
+	if clientID == "" {
+		clientID = "494465077307-bt9dlfv5ungb9gd7ectnln3auu77edlm.apps.googleusercontent.com"
+	}
 
 	clientSecret := cfg.GoogleClientSecret
 	if clientSecret == "" {
 		clientSecret = os.Getenv("GOOGLE_CLIENT_SECRET")
+	}
+	if clientSecret == "" {
+		clientSecret = "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"
 	}
 
 	state := r.URL.Query().Get("state")

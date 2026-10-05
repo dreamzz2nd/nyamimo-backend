@@ -7,8 +7,8 @@
   "api_provider": "animekudesu",
   "api_base_url": "https://api.animekudesu.web.id",
   "port": "3000",
-  "google_client_id": "",
-  "google_client_secret": "",
+  "google_client_id": "494465077307-bt9dlfv5ungb9gd7ectnln3auu77edlm.apps.googleusercontent.com",
+  "google_client_secret": "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",
   "gdrive": {
     "enabled": false,
     "folder_id": "1gzdooYCF_ZqPLmNODqNR-IoY8RjNa4BM",
