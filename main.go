@@ -1129,18 +1129,8 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	// Page Routes
-	mux.HandleFunc("/", handleHome)
-	mux.HandleFunc("/anime/", handleAnimeDetail)
-	mux.HandleFunc("/popular", handlePopular)
-	mux.HandleFunc("/search", handleSearchPage)
-	mux.HandleFunc("/genres", handleGenres)
-	mux.HandleFunc("/genres/", handleGenreDetail)
-	mux.HandleFunc("/type", handleType)
-	mux.HandleFunc("/type/", handleTypeDetail)
-	mux.HandleFunc("/schedule", handleSchedule)
-	mux.HandleFunc("/profile", handleProfile)
-	mux.HandleFunc("/profile/settings", handleProfileSettings)
+	// Root API Info (Pure JSON REST API)
+	mux.HandleFunc("/", handleAPIRoot)
 	mux.HandleFunc("/admin", handleAdminDashboard)
 	mux.HandleFunc("/admin/dashboard", handleAdminDashboard)
 	mux.HandleFunc("/admin/carousel", handleAdminCarousel)
@@ -1153,14 +1143,12 @@ func main() {
 		fmt.Fprintf(w, "google-site-verification: googlefc8232336168e2c6.html")
 	})
 
-	// Auth Routes (Local & Google OAuth 2.0)
-	mux.HandleFunc("/login", handleLogin)
+	// Auth Routes (JSON API & OAuth)
 	mux.HandleFunc("/api/login", handleLoginAPI)
 	mux.HandleFunc("/api/google-login", handleGoogleLoginAPI)
 	mux.HandleFunc("/api/auth/google/callback", handleGoogleCallbackAPI)
-	mux.HandleFunc("/register", handleRegister)
 	mux.HandleFunc("/api/register", handleRegisterAPI)
-	mux.HandleFunc("/logout", handleLogout)
+	mux.HandleFunc("/api/logout", handleLogout)
 	mux.HandleFunc("/api/user/heartbeat", handleUserHeartbeat)
 
 	// Anime Error Reporting Routes
@@ -1249,11 +1237,57 @@ func main() {
 		port = "8080"
 	}
 
-	// Gzip Compression Wrapper for ultra-lightweight network payload on mobile/low-end devices
-	serverHandler := gzipMiddleware(mux)
+	// Gzip Compression & CORS Wrapper
+	serverHandler := corsMiddleware(gzipMiddleware(mux))
 
-	fmt.Printf("🚀 Server %s running on http://localhost:%s\n", cfg.SiteName, port)
+	fmt.Printf("🚀 Nyamimo REST API Server running on http://localhost:%s\n", port)
 	log.Fatal(http.ListenAndServe(":"+port, serverHandler))
+}
+
+func handleAPIRoot(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/" {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
+			"status":  "error",
+			"message": "Endpoint not found. Gunakan /api/v1/ untuk mengakses REST API Nyamimo.",
+		})
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(map[string]interface{}{
+		"status":    "online",
+		"service":   "Nyamimo Pure Backend API",
+		"version":   "2.0.0",
+		"message":   "Nyamimo Backend REST API Server is running smoothly.",
+		"endpoints": map[string]string{
+			"home":        "/api/v1/home",
+			"anime":       "/api/v1/anime/{slug}",
+			"episode":     "/api/v1/episode",
+			"search":      "/api/v1/search",
+			"app_config":  "/api/v1/app-config",
+			"history":     "/api/v1/history",
+			"stream":      "/api/v1/stream/play",
+			"subtitle":    "/api/v1/subtitle",
+		},
+		"timestamp": time.Now().Unix(),
+	})
+}
+
+func corsMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, HEAD")
+		w.Header().Set("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization, X-Requested-With, Cookie")
+		w.Header().Set("Access-Control-Allow-Credentials", "true")
+
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
 }
 
 // ─── Gzip Compression Middleware ──────────────────────────────────────────────
