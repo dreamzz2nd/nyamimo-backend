@@ -1,14 +1,15 @@
 {{define "content"}}
 <div x-data="{ 
         activeTab: 'history', 
-        items: (window.MyList ? MyList.getAll() : (JSON.parse(localStorage.getItem('animekudesu_mylist') || '[]'))), 
-        historyItems: (window.WatchHistory ? WatchHistory.get() : (JSON.parse(localStorage.getItem('nyamimo_watch_history') || '[]'))),
+        items: (window.MyList ? MyList.getAll() : []), 
+        historyItems: (window.WatchHistory ? WatchHistory.get() : []),
         refresh() {
             try {
                 if (window.WatchHistory) {
                     this.historyItems = WatchHistory.get();
                 } else {
-                    this.historyItems = JSON.parse(localStorage.getItem('nyamimo_watch_history') || '[]');
+                    var user = (window.__CURRENT_USER_ID && window.__CURRENT_USER_ID.trim() !== '') ? window.__CURRENT_USER_ID.trim() : 'guest';
+                    this.historyItems = JSON.parse(localStorage.getItem('nyamimo_watch_history_' + user) || '[]');
                 }
             } catch(e) { this.historyItems = []; }
 
@@ -16,7 +17,8 @@
                 if (window.MyList) {
                     this.items = MyList.getAll();
                 } else {
-                    this.items = JSON.parse(localStorage.getItem('animekudesu_mylist') || '[]');
+                    var user = (window.__CURRENT_USER_ID && window.__CURRENT_USER_ID.trim() !== '') ? window.__CURRENT_USER_ID.trim() : 'guest';
+                    this.items = JSON.parse(localStorage.getItem('nyamimo_mylist_' + user) || '[]');
                 }
             } catch(e) { this.items = []; }
 
@@ -32,7 +34,7 @@
         window.addEventListener('mylist-updated', () => refresh());
         window.addEventListener('focus', () => refresh());
         window.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
-        window.addEventListener('storage', (e) => { if (e.key === 'nyamimo_watch_history' || e.key === 'animekudesu_mylist') refresh(); });
+        window.addEventListener('storage', (e) => { if (e.key && (e.key.startsWith('nyamimo_watch_history') || e.key.startsWith('nyamimo_mylist'))) refresh(); });
      " 
      class="max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
     
@@ -180,7 +182,7 @@
             <!-- Clear MyList Button -->
             <button 
                 x-show="activeTab === 'mylist' && items.length > 0"
-                @click="if(confirm('Hapus semua dari My List?')) { localStorage.removeItem('animekudesu_mylist'); items = []; }"
+                @click="if(confirm('Hapus semua dari My List?')) { MyList.clear(); items = []; }"
                 class="px-3.5 py-2 rounded-xl bg-[#F6F5F0] hover:bg-red-50 text-xs font-bold font-title text-[#55555B] hover:text-red-600 border border-[#E2E2DC] transition-colors flex items-center gap-1.5"
             >
                 <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Hapus Favorit

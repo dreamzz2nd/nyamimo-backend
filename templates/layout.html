@@ -132,11 +132,20 @@
 
     <!-- Global Client Stores: WatchHistory, MyList, SearchHistory -->
     <script>
+        window.__CURRENT_USER_ID = '{{if .User}}{{.User.Username}}{{else}}guest{{end}}';
+
         var MyList = {
-            getKey: function() { return 'animekudesu_mylist'; },
+            getKey: function() { 
+                var user = (window.__CURRENT_USER_ID && window.__CURRENT_USER_ID.trim() !== '') ? window.__CURRENT_USER_ID.trim() : 'guest';
+                return 'nyamimo_mylist_' + user; 
+            },
             getAll: function() {
                 try {
-                    return JSON.parse(localStorage.getItem(this.getKey())) || [];
+                    var raw = localStorage.getItem(this.getKey());
+                    if (!raw && this.getKey() === 'nyamimo_mylist_guest') {
+                        raw = localStorage.getItem('animekudesu_mylist') || localStorage.getItem('nyamimo_mylist');
+                    }
+                    return JSON.parse(raw) || [];
                 } catch (e) { return []; }
             },
             has: function(link) {
@@ -153,6 +162,10 @@
                 localStorage.setItem(this.getKey(), JSON.stringify(list));
                 window.dispatchEvent(new Event('mylist-updated'));
                 return index < 0;
+            },
+            clear: function() {
+                localStorage.removeItem(this.getKey());
+                window.dispatchEvent(new Event('mylist-updated'));
             }
         };
         window.MyList = MyList;
@@ -171,10 +184,16 @@
         window.formatWatchTime = formatWatchTime;
 
         var WatchHistory = {
-            getKey: function() { return 'nyamimo_watch_history'; },
+            getKey: function() { 
+                var user = (window.__CURRENT_USER_ID && window.__CURRENT_USER_ID.trim() !== '') ? window.__CURRENT_USER_ID.trim() : 'guest';
+                return 'nyamimo_watch_history_' + user; 
+            },
             get: function() {
                 try {
                     var raw = localStorage.getItem(this.getKey());
+                    if (!raw && this.getKey() === 'nyamimo_watch_history_guest') {
+                        raw = localStorage.getItem('nyamimo_watch_history');
+                    }
                     if (!raw) return [];
                     var parsed = JSON.parse(raw);
                     if (!Array.isArray(parsed)) return [];

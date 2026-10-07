@@ -106,6 +106,90 @@
                 <span class="hidden sm:inline">Riwayat</span>
             </a>
 
+            <!-- Nyamimo Android App Download Button (iQIYI / Bilibili Style) -->
+            <div class="relative" 
+                 x-data="{ 
+                     openAppDropdown: false, 
+                     apkUrl: '{{if $cfg.App.APKDownloadURL}}{{$cfg.App.APKDownloadURL}}{{else}}https://api-mimo.neperone.id{{end}}', 
+                     apkVer: '{{if $cfg.App.LatestVersionName}}{{$cfg.App.LatestVersionName}}{{else}}v1.0.0{{end}}'
+                 }" 
+                 x-init="
+                     fetch('/api/v1/app-config')
+                         .then(r => r.json())
+                         .then(d => {
+                             if (d && d.apkDownloadUrl) {
+                                 apkUrl = d.apkDownloadUrl;
+                                 if (d.latestVersionName) apkVer = d.latestVersionName;
+                             }
+                         }).catch(()=>{});
+                 "
+                 @click.outside="openAppDropdown = false">
+                <button type="button" 
+                    @click="openAppDropdown = !openAppDropdown; $nextTick(() => { if (window.lucide) lucide.createIcons(); })" 
+                    class="px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 border font-title flex items-center gap-1.5 shadow-sm group hover:scale-105 cursor-pointer"
+                    :class="(isHome && !scrolled) ? 'bg-[#00C234]/20 hover:bg-[#00C234]/30 text-[#00E53A] border-[#00C234]/50 shadow-[0_0_12px_rgba(0,194,52,0.25)]' : 'bg-[#00C234]/10 hover:bg-[#00C234]/20 text-[#00A82D] border-[#00C234]/40'"
+                    title="Download Aplikasi Nyamimo Android">
+                    <i data-lucide="smartphone" class="w-3.5 h-3.5 text-[#00C234] group-hover:scale-110 transition-transform"></i>
+                    <span class="tracking-wider font-extrabold">APP</span>
+                    <span class="hidden xl:inline text-[9px] px-1 py-0.2 rounded bg-[#00C234] text-white font-black uppercase tracking-tighter" x-text="apkVer"></span>
+                </button>
+
+                <!-- App Download Popover Dropdown -->
+                <div x-show="openAppDropdown" 
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0 translate-y-2 scale-95"
+                     x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                     x-transition:leave="transition ease-in duration-150"
+                     x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                     x-transition:leave-end="opacity-0 translate-y-2 scale-95"
+                     class="absolute right-0 mt-2 w-72 sm:w-80 bg-white border border-[#E2E2DC] rounded-2xl shadow-2xl p-4 sm:p-5 z-50 text-[#17171B]"
+                     style="display: none;">
+                    
+                    <div class="flex items-start justify-between gap-3 pb-3 border-b border-[#E2E2DC]">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#00C234] to-[#10B981] text-white flex items-center justify-center font-extrabold shadow-md shrink-0">
+                                <i data-lucide="smartphone" class="w-6 h-6"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-extrabold font-title leading-tight text-[#17171B]">
+                                    Nyamimo Android
+                                </h4>
+                                <span class="inline-flex items-center gap-1 text-[10px] font-bold text-[#00A82D] bg-[#00C234]/10 px-2 py-0.5 rounded-full mt-0.5">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-[#00C234] animate-pulse"></span>
+                                    Versi <span x-text="apkVer"></span>
+                                </span>
+                            </div>
+                        </div>
+                        <button type="button" @click="openAppDropdown = false" class="text-[#71717A] hover:text-[#17171B] p-1">
+                            <i data-lucide="x" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+
+                    <div class="py-3 space-y-2 text-xs text-[#55555B]">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="zap" class="w-3.5 h-3.5 text-[#FFCC00] shrink-0"></i>
+                            <span>Streaming cepat & server stabil</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="shield-check" class="w-3.5 h-3.5 text-[#00C234] shrink-0"></i>
+                            <span>Otomatis terupdate ke versi terbaru</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-[#3B82F6] shrink-0"></i>
+                            <span>Sinkronisasi riwayat & favorit akun</span>
+                        </div>
+                    </div>
+
+                    <a :href="apkUrl" 
+                       target="_blank"
+                       download
+                       class="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-[#00C234] hover:bg-[#00A82D] active:scale-[0.98] text-white font-extrabold font-title text-xs tracking-wide shadow-md transition-all">
+                        <i data-lucide="download" class="w-4 h-4 stroke-[2.5px]"></i>
+                        <span>Download APK Android</span>
+                    </a>
+                </div>
+            </div>
+
             <!-- Admin Dashboard Link (Admin only) -->
             {{if .User}}
                 {{if eq .User.Role "admin"}}
