@@ -322,6 +322,73 @@ func (c *APIClient) handleNyamimoEndpoint(endpoint string, target interface{}) (
 		}
 	}
 
+	// 5. Episode Detail: any call where target is *EpisodeDetailResponse OR endpoint contains episode
+	_, isEpisodeTarget := target.(*EpisodeDetailResponse)
+	if isEpisodeTarget || strings.Contains(endpoint, "episode") || strings.HasPrefix(endpoint, "/episode") || strings.HasPrefix(endpoint, "/api/v1/episode") {
+		slug := endpoint
+		if strings.HasPrefix(slug, "/api/v1/episode") || strings.HasPrefix(slug, "/episode") {
+			u, err := url.Parse(slug)
+			if err == nil {
+				qSlug := u.Query().Get("slug")
+				if qSlug == "" {
+					qSlug = u.Query().Get("detail_eps")
+				}
+				if qSlug != "" {
+					slug = qSlug
+				}
+			}
+		}
+		slug = strings.TrimPrefix(slug, "/episode/")
+		slug = strings.TrimPrefix(slug, "/api/v1/episode/")
+		slug = strings.TrimPrefix(slug, "/api/episode/")
+		slug = strings.TrimPrefix(slug, "/")
+
+		if slug != "" {
+			epURL := fmt.Sprintf("%s/api/v1/episode?slug=%s", baseURL, url.QueryEscape(slug))
+			if strings.HasSuffix(baseURL, "/api/v1") {
+				epURL = fmt.Sprintf("%s/episode?slug=%s", baseURL, url.QueryEscape(slug))
+			}
+
+			body, err := c.fetchRaw(epURL)
+			if err != nil {
+				return true, err
+			}
+
+			var vpsEp struct {
+				Status            string           `json:"status"`
+				Title             string           `json:"title"`
+				EpisodeNum        string           `json:"episodeNum"`
+				VideoURL          string           `json:"videoURL"`
+				RawVideoURL       string           `json:"video_url"`
+				RawIframe         string           `json:"rawIframe"`
+				IsDirectVideo     bool             `json:"isDirectVideo"`
+				Videos            []PlayerOption   `json:"videos"`
+				ActiveServerTitle string           `json:"activeServerTitle"`
+				Downloads         []DownloadFormat `json:"downloads"`
+			}
+			if err := json.Unmarshal(body, &vpsEp); err == nil {
+				vURL := vpsEp.VideoURL
+				if vURL == "" {
+					vURL = vpsEp.RawVideoURL
+				}
+				if vURL == "" && len(vpsEp.Videos) > 0 {
+					vURL = vpsEp.Videos[0].Video
+				}
+
+				if t, ok := target.(*EpisodeDetailResponse); ok {
+					t.Title = vpsEp.Title
+					t.EpisodeNumber = vpsEp.EpisodeNum
+					t.VideoURL = vURL
+					t.Videos = vpsEp.Videos
+					t.Downloads = vpsEp.Downloads
+					return true, nil
+				}
+			}
+
+			return true, json.Unmarshal(body, target)
+		}
+	}
+
 	return false, nil
 }
 
