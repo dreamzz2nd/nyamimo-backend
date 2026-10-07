@@ -214,10 +214,74 @@ func (c *APIClient) handleNyamimoEndpoint(endpoint string, target interface{}) (
 		} else if endpoint == "/ongoing-anime" || endpoint == "/new-anime" || endpoint == "/order-anime/latest-update" {
 			items = nyamimoHome.Ongoing
 		} else if strings.HasPrefix(endpoint, "/genre-anime/") {
-			all := append(nyamimoHome.Ongoing, nyamimoHome.Completed...)
-			items = all
-			if len(items) > 24 {
-				items = items[:24]
+			genreID := strings.ToLower(strings.TrimPrefix(endpoint, "/genre-anime/"))
+			genreID = strings.Trim(genreID, "/")
+
+			// 1. Search VPS for this specific genre keyword
+			searchURL := fmt.Sprintf("%s/api/v1/search?q=%s", baseURL, url.QueryEscape(genreID))
+			if strings.HasSuffix(baseURL, "/api/v1") {
+				searchURL = fmt.Sprintf("%s/search?q=%s", baseURL, url.QueryEscape(genreID))
+			}
+
+			if sBody, err := c.fetchRaw(searchURL); err == nil {
+				var searchResp struct {
+					Status  string      `json:"status"`
+					Query   string      `json:"query"`
+					Results []AnimeItem `json:"results"`
+				}
+				if err := json.Unmarshal(sBody, &searchResp); err == nil && len(searchResp.Results) > 0 {
+					items = append(items, searchResp.Results...)
+				}
+			}
+
+			// 2. Also search for common synonyms/aliases
+			if genreID == "erotica" || genreID == "ecchi" || genreID == "hentai" {
+				synonyms := []string{"ecchi", "erotica", "hentai"}
+				for _, syn := range synonyms {
+					if syn == genreID {
+						continue
+					}
+					synURL := fmt.Sprintf("%s/api/v1/search?q=%s", baseURL, url.QueryEscape(syn))
+					if strings.HasSuffix(baseURL, "/api/v1") {
+						synURL = fmt.Sprintf("%s/search?q=%s", baseURL, url.QueryEscape(syn))
+					}
+					if sBody, err := c.fetchRaw(synURL); err == nil {
+						var synResp struct {
+							Status  string      `json:"status"`
+							Results []AnimeItem `json:"results"`
+						}
+						if err := json.Unmarshal(sBody, &synResp); err == nil {
+							for _, it := range synResp.Results {
+								exists := false
+								for _, existIt := range items {
+									if existIt.Slug == it.Slug {
+										exists = true
+										break
+									}
+								}
+								if !exists {
+									items = append(items, it)
+								}
+							}
+						}
+					}
+				}
+			}
+
+			// 3. If no search results found, filter from ongoing & completed
+			if len(items) == 0 {
+				all := append(nyamimoHome.Ongoing, nyamimoHome.Completed...)
+				for _, it := range all {
+					itLower := strings.ToLower(it.Title + " " + it.Type)
+					if strings.Contains(itLower, genreID) {
+						items = append(items, it)
+					}
+				}
+			}
+
+			// 4. Fallback to all if still empty
+			if len(items) == 0 {
+				items = append(nyamimoHome.Ongoing, nyamimoHome.Completed...)
 			}
 		} else {
 			// Popular or latest
@@ -1007,11 +1071,12 @@ func (w WajikEpisodeResponse) ToEpisodeDetailResponse() EpisodeDetailResponse {
 
 func GetDefaultGenres() []Genre {
 	genreNames := []string{
-		"Action", "Adventure", "Comedy", "Drama", "Ecchi", "Fantasy",
-		"Harem", "Historical", "Horror", "Isekai", "Josei", "Magic",
-		"Martial Arts", "Mecha", "Military", "Music", "Mystery", "Psychological",
-		"Romance", "Samurai", "School", "Sci-Fi", "Seinen", "Shoujo",
-		"Shounen", "Slice of Life", "Sports", "Super Power", "Supernatural",
+		"Action", "Adult", "Adventure", "Comedy", "Demons", "Drama", "Ecchi", "Erotica",
+		"Fantasy", "Game", "Harem", "Hentai", "Historical", "Horror", "Isekai",
+		"Josei", "Kids", "Magic", "Martial Arts", "Mecha", "Military", "Music",
+		"Mystery", "Parody", "Police", "Psychological", "Romance", "Samurai", "School",
+		"Sci-Fi", "Seinen", "Shoujo", "Shoujo Ai", "Shounen", "Shounen Ai",
+		"Slice of Life", "Space", "Sports", "Super Power", "Supernatural",
 		"Suspense", "Thriller", "Vampire",
 	}
 	var res []Genre
@@ -1020,7 +1085,7 @@ func GetDefaultGenres() []Genre {
 		res = append(res, Genre{
 			Title: g,
 			ID:    slug,
-			Link:  fmt.Sprintf("/genre/%s", slug),
+			Link:  fmt.Sprintf("/genres/%s", slug),
 			Tag:   g,
 		})
 	}

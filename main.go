@@ -1957,20 +1957,7 @@ func handlePopular(w http.ResponseWriter, r *http.Request) {
 
 func handleGenres(w http.ResponseWriter, r *http.Request) {
 	recordVisit(r)
-	genres := []client.Genre{
-		{ID: "action", Title: "Action"},
-		{ID: "adventure", Title: "Adventure"},
-		{ID: "comedy", Title: "Comedy"},
-		{ID: "drama", Title: "Drama"},
-		{ID: "fantasy", Title: "Fantasy"},
-		{ID: "isekai", Title: "Isekai"},
-		{ID: "romance", Title: "Romance"},
-		{ID: "school", Title: "School"},
-		{ID: "shounen", Title: "Shounen"},
-		{ID: "slice-of-life", Title: "Slice of Life"},
-		{ID: "supernatural", Title: "Supernatural"},
-		{ID: "sci-fi", Title: "Sci-Fi"},
-	}
+	genres := client.GetDefaultGenres()
 
 	data := GenresPageData{
 		SEOData: SEOData{
@@ -1991,22 +1978,10 @@ func handleGenres(w http.ResponseWriter, r *http.Request) {
 
 func handleGenreDetail(w http.ResponseWriter, r *http.Request) {
 	recordVisit(r)
-	id := strings.TrimPrefix(r.URL.Path, "/genres/")
+	id := strings.ToLower(strings.TrimPrefix(r.URL.Path, "/genres/"))
+	id = strings.Trim(id, "/")
 
-	genres := []client.Genre{
-		{ID: "action", Title: "Action"},
-		{ID: "adventure", Title: "Adventure"},
-		{ID: "comedy", Title: "Comedy"},
-		{ID: "drama", Title: "Drama"},
-		{ID: "fantasy", Title: "Fantasy"},
-		{ID: "isekai", Title: "Isekai"},
-		{ID: "romance", Title: "Romance"},
-		{ID: "school", Title: "School"},
-		{ID: "shounen", Title: "Shounen"},
-		{ID: "slice-of-life", Title: "Slice of Life"},
-		{ID: "supernatural", Title: "Supernatural"},
-		{ID: "sci-fi", Title: "Sci-Fi"},
-	}
+	genres := client.GetDefaultGenres()
 
 	var selected *client.Genre
 	for _, g := range genres {
@@ -2016,7 +1991,7 @@ func handleGenreDetail(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	if selected == nil {
-		selected = &client.Genre{ID: id, Title: strings.Title(id)}
+		selected = &client.Genre{ID: id, Title: strings.Title(strings.ReplaceAll(id, "-", " "))}
 	}
 
 	store := scraper.GetStore()
