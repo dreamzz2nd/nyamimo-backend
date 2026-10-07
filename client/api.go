@@ -13,9 +13,10 @@ import (
 )
 
 const (
-	DefaultBaseAPIURL   = "https://api.animekudesu.web.id"
+	DefaultBaseAPIURL   = "https://api-mimo.neperone.id"
 	DefaultWajikBaseURL = "https://wajik-anime-api.vercel.app"
 	
+	ProviderNyamimo       = "nyamimo"
 	ProviderAnimeKuDesu   = "animekudesu"
 	ProviderWajikOploverz = "wajik_oploverz"
 	ProviderWajikOtakudesu = "wajik_otakudesu"
@@ -25,7 +26,7 @@ const (
 
 var (
 	BaseAPIURL     = DefaultBaseAPIURL
-	ActiveProvider = ProviderAnimeKuDesu
+	ActiveProvider = ProviderNyamimo
 )
 
 type CacheItem struct {
@@ -44,7 +45,7 @@ type APIClient struct {
 func NewAPIClient(ttl time.Duration) *APIClient {
 	return &APIClient{
 		httpClient: &http.Client{
-			Timeout: 1500 * time.Millisecond,
+			Timeout: 10 * time.Second,
 		},
 		ttl:      ttl,
 		baseURL:  BaseAPIURL,
@@ -55,7 +56,7 @@ func NewAPIClient(ttl time.Duration) *APIClient {
 func (c *APIClient) SetProvider(provider string) {
 	provider = strings.TrimSpace(strings.ToLower(provider))
 	if provider == "" {
-		provider = ProviderAnimeKuDesu
+		provider = ProviderNyamimo
 	}
 	c.provider = provider
 	ActiveProvider = provider
@@ -138,6 +139,15 @@ func (c *APIClient) fetchRaw(fullURL string) ([]byte, error) {
 func (c *APIClient) GetJSON(endpoint string, target interface{}) error {
 	endpoint = strings.TrimSpace(endpoint)
 	provider := c.GetProvider()
+	baseURL := c.GetBaseURL()
+
+	// If provider is Nyamimo or baseURL points to api-mimo / neperone.id
+	if provider == ProviderNyamimo || strings.Contains(baseURL, "neperone.id") || strings.Contains(baseURL, "api-mimo") {
+		handled, err := c.handleNyamimoEndpoint(endpoint, target)
+		if handled {
+			return err
+		}
+	}
 
 	// If provider is Wajik (Oploverz / Otakudesu / Kuramanime), adapt common endpoints
 	if strings.HasPrefix(provider, "wajik_") {
@@ -162,6 +172,157 @@ func (c *APIClient) GetJSON(endpoint string, target interface{}) error {
 	}
 
 	return json.Unmarshal(body, target)
+}
+
+// Adapter for Nyamimo / api-mimo endpoints
+func (c *APIClient) handleNyamimoEndpoint(endpoint string, target interface{}) (bool, error) {
+	baseURL := c.GetBaseURL()
+	if baseURL == "" {
+		baseURL = DefaultBaseAPIURL
+	}
+	baseURL = strings.TrimSuffix(baseURL, "/")
+
+	// 1. Home / Ongoing / Completed / New Anime / Popular / Genre / Type
+	if endpoint == "/ongoing-anime" || endpoint == "/completed-anime" || endpoint == "/new-anime" ||
+		endpoint == "/order-anime/popular" || endpoint == "/order-anime/latest-update" || endpoint == "/popular" ||
+		strings.HasPrefix(endpoint, "/order-anime/") || strings.HasPrefix(endpoint, "/type-anime/") || strings.HasPrefix(endpoint, "/genre-anime/") {
+
+		homeURL := baseURL + "/api/v1/home"
+		if strings.HasSuffix(baseURL, "/api/v1") {
+			homeURL = baseURL + "/home"
+		}
+
+		body, err := c.fetchRaw(homeURL)
+		if err != nil {
+			return true, err
+		}
+
+		var nyamimoHome struct {
+			Status    string      `json:"status"`
+			Banners   []AnimeItem `json:"banners"`
+			Ongoing   []AnimeItem `json:"ongoing"`
+			Completed []AnimeItem `json:"completed"`
+			Genres    []Genre     `json:"genres"`
+		}
+		if err := json.Unmarshal(body, &nyamimoHome); err != nil {
+			return true, err
+		}
+
+		var items []AnimeItem
+		if endpoint == "/completed-anime" {
+			items = nyamimoHome.Completed
+		} else if endpoint == "/ongoing-anime" || endpoint == "/new-anime" || endpoint == "/order-anime/latest-update" {
+			items = nyamimoHome.Ongoing
+		} else if strings.HasPrefix(endpoint, "/genre-anime/") {
+			all := append(nyamimoHome.Ongoing, nyamimoHome.Completed...)
+			items = all
+			if len(items) > 24 {
+				items = items[:24]
+			}
+		} else {
+			// Popular or latest
+			items = append(nyamimoHome.Ongoing, nyamimoHome.Completed...)
+		}
+
+		switch t := target.(type) {
+		case *AnimeListResponse:
+			t.Status = "success"
+			t.Data = items
+			return true, nil
+		case *struct {
+			TotalPage int         `json:"total_page"`
+			Data      []AnimeItem `json:"data"`
+		}:
+			t.TotalPage = 1
+			t.Data = items
+			return true, nil
+		}
+	}
+
+	// 2. Genres list
+	if endpoint == "/genres" {
+		defaultGenres := GetDefaultGenres()
+		if t, ok := target.(*GenreListResponse); ok {
+			t.Status = "success"
+			t.Data = defaultGenres
+			return true, nil
+		}
+	}
+
+	// 3. Anime Detail: /detail-anime/:slug
+	if strings.HasPrefix(endpoint, "/detail-anime/") {
+		slug := strings.TrimPrefix(endpoint, "/detail-anime/")
+		slug = strings.Trim(slug, "/")
+
+		detailURL := fmt.Sprintf("%s/api/v1/anime/%s", baseURL, slug)
+		if strings.HasSuffix(baseURL, "/api/v1") {
+			detailURL = fmt.Sprintf("%s/anime/%s", baseURL, slug)
+		}
+
+		body, err := c.fetchRaw(detailURL)
+		if err != nil {
+			return true, err
+		}
+
+		var resp struct {
+			Status string          `json:"status"`
+			Data   AnimeDetailData `json:"data"`
+		}
+		if err := json.Unmarshal(body, &resp); err != nil {
+			return true, err
+		}
+
+		switch t := target.(type) {
+		case *AnimeDetailResponse:
+			t.Status = "success"
+			t.Data = resp.Data
+			return true, nil
+		case *AnimeDetailData:
+			*t = resp.Data
+			return true, nil
+		}
+	}
+
+	// 4. Search: /search-anime?search=... or /search/...
+	if strings.HasPrefix(endpoint, "/search-anime") || strings.HasPrefix(endpoint, "/search/") {
+		var q string
+		if strings.HasPrefix(endpoint, "/search-anime") {
+			u, _ := url.Parse(endpoint)
+			q = u.Query().Get("search")
+			if q == "" {
+				q = u.Query().Get("q")
+			}
+		} else {
+			q = strings.TrimPrefix(endpoint, "/search/")
+		}
+
+		searchURL := fmt.Sprintf("%s/api/v1/search?q=%s", baseURL, url.QueryEscape(q))
+		if strings.HasSuffix(baseURL, "/api/v1") {
+			searchURL = fmt.Sprintf("%s/search?q=%s", baseURL, url.QueryEscape(q))
+		}
+
+		body, err := c.fetchRaw(searchURL)
+		if err != nil {
+			return true, err
+		}
+
+		var searchResp struct {
+			Status  string      `json:"status"`
+			Query   string      `json:"query"`
+			Results []AnimeItem `json:"results"`
+		}
+		if err := json.Unmarshal(body, &searchResp); err != nil {
+			return true, err
+		}
+
+		if t, ok := target.(*AnimeListResponse); ok {
+			t.Status = "success"
+			t.Data = searchResp.Results
+			return true, nil
+		}
+	}
+
+	return false, nil
 }
 
 // Adapter for Wajik endpoints

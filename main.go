@@ -1129,8 +1129,23 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	// Root API Info (Pure JSON REST API)
-	mux.HandleFunc("/", handleAPIRoot)
+	// Web Frontend HTML Routes (Bstation / Modern UI)
+	mux.HandleFunc("/", handleHome)
+	mux.HandleFunc("/anime/", handleAnimeDetail)
+	mux.HandleFunc("/popular", handlePopular)
+	mux.HandleFunc("/genres", handleGenres)
+	mux.HandleFunc("/genres/", handleGenreDetail)
+	mux.HandleFunc("/type", handleType)
+	mux.HandleFunc("/type/", handleTypeDetail)
+	mux.HandleFunc("/schedule", handleSchedule)
+	mux.HandleFunc("/search", handleSearchPage)
+	mux.HandleFunc("/profile", handleProfile)
+	mux.HandleFunc("/profile/settings", handleProfileSettings)
+	mux.HandleFunc("/login", handleLogin)
+	mux.HandleFunc("/register", handleRegister)
+	mux.HandleFunc("/api/info", handleAPIRoot)
+
+	// Admin Dashboard
 	mux.HandleFunc("/admin", handleAdminDashboard)
 	mux.HandleFunc("/admin/dashboard", handleAdminDashboard)
 	mux.HandleFunc("/admin/carousel", handleAdminCarousel)

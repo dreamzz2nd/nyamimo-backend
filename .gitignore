@@ -46,4 +46,6 @@ android/app/build/
 android/gradle_dist/
 *.apk
 *.aab
+*.exe
+nyamimo-go*
 local.properties
