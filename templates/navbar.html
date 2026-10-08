@@ -110,18 +110,22 @@
             <div class="relative" 
                  x-data="{ 
                      openAppDropdown: false, 
-                     apkUrl: '{{if $cfg.App.APKDownloadURL}}{{$cfg.App.APKDownloadURL}}{{else}}https://api-mimo.neperone.id{{end}}', 
+                     apkUrl: '{{if and $cfg.App.APKDownloadURL (ne $cfg.App.APKDownloadURL "https://api-mimo.neperone.id")}}{{$cfg.App.APKDownloadURL}}{{else}}/download/app{{end}}', 
                      apkVer: '{{if $cfg.App.LatestVersionName}}{{$cfg.App.LatestVersionName}}{{else}}v1.0.0{{end}}'
                  }" 
                  x-init="
                      fetch('/api/v1/app-config')
                          .then(r => r.json())
                          .then(d => {
-                             if (d && d.apkDownloadUrl) {
-                                 apkUrl = d.apkDownloadUrl;
+                             if (d) {
+                                 if (d.apkDownloadUrl && d.apkDownloadUrl !== 'https://api-mimo.neperone.id' && d.apkDownloadUrl !== 'https://api-mimo.neperone.id/') {
+                                     apkUrl = d.apkDownloadUrl;
+                                 } else {
+                                     apkUrl = '/download/app';
+                                 }
                                  if (d.latestVersionName) apkVer = d.latestVersionName;
                              }
-                         }).catch(()=>{});
+                         }).catch(() => { apkUrl = '/download/app'; });
                  "
                  @click.outside="openAppDropdown = false">
                 <button type="button" 

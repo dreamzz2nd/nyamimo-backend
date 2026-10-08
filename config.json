@@ -68,7 +68,7 @@
     "api_base_url": "https://api-mimo.neperone.id",
     "latest_version_code": 1,
     "latest_version_name": "v1.0.0",
-    "apk_download_url": "https://api-mimo.neperone.id",
+    "apk_download_url": "/download/app",
     "force_update": false,
     "update_changelog": "- Streaming server lancar\n- Sinkronisasi riwayat nonton otomatis",
     "streaming_enabled": true,

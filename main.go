@@ -1182,6 +1182,8 @@ func main() {
 	mux.HandleFunc("/api/v1/history/delete", handleHistoryDeleteAPI)
 	mux.HandleFunc("/api/v1/app-config", handleAPIV1AppConfig)
 	mux.HandleFunc("/api/app/config", handleAPIV1AppConfig)
+	mux.HandleFunc("/download/app", handleAppDownload)
+	mux.HandleFunc("/api/v1/app/download", handleAppDownload)
 	mux.HandleFunc("/api/v1/subtitle", handleAPIV1Subtitle)
 	mux.HandleFunc("/api/v1/debrid/stream", handleAPIV1DebridStream)
 	mux.HandleFunc("/api/v1/stream/play", handleAPIV1StreamPlay)
@@ -4638,6 +4640,25 @@ func handleAPIV1AppConfig(w http.ResponseWriter, r *http.Request) {
 			"username":     func() string { if u != nil { return u.Username }; return "" }(),
 		},
 	})
+}
+
+func handleAppDownload(w http.ResponseWriter, r *http.Request) {
+	cfg := getAppConfig()
+	targetURL := strings.TrimSpace(cfg.App.APKDownloadURL)
+	if targetURL != "" && targetURL != "/download/app" && targetURL != "/api/v1/app/download" && !strings.HasSuffix(targetURL, "neperone.id") && !strings.HasSuffix(targetURL, "neperone.id/") {
+		if strings.HasPrefix(targetURL, "http://") || strings.HasPrefix(targetURL, "https://") {
+			http.Redirect(w, r, targetURL, http.StatusTemporaryRedirect)
+			return
+		}
+	}
+	apkPath := filepath.Join("public", "downloads", "nyamimo-latest.apk")
+	if _, err := os.Stat(apkPath); err == nil {
+		w.Header().Set("Content-Type", "application/vnd.android.package-archive")
+		w.Header().Set("Content-Disposition", "attachment; filename=\"nyamimo-latest.apk\"")
+		http.ServeFile(w, r, apkPath)
+		return
+	}
+	http.Redirect(w, r, "/static/downloads/nyamimo-latest.apk", http.StatusTemporaryRedirect)
 }
 
 func getRedirectBaseURL(r *http.Request) string {
