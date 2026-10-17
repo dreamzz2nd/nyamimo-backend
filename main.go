@@ -1604,11 +1604,15 @@ func renderPage(w http.ResponseWriter, pageTemplate string, data interface{}) {
 		http.Error(w, "Template render error: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	err = tmpl.ExecuteTemplate(w, "layout", data)
+	var buf bytes.Buffer
+	err = tmpl.ExecuteTemplate(&buf, "layout", data)
 	if err != nil {
 		log.Printf("Execute error: %v", err)
+		http.Error(w, "Execute error: "+err.Error(), http.StatusInternalServerError)
+		return
 	}
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	_, _ = buf.WriteTo(w)
 }
 
 // Render Partial Helper (Zero disk reads after first request)

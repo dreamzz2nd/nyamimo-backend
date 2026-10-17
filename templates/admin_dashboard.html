@@ -2650,169 +2650,7 @@
     </div>
 
     <!-- TAB 7: BOT SCRAPER OTOMATIS & LIVE LOGS -->
-    <div x-show="activeTab === 'scraper'" class="space-y-6" x-data="{
-        logs: [],
-        stats: {
-            total_anime: 0,
-            total_ongoing: 0,
-            total_completed: 0,
-            total_episodes: 0,
-            is_running: false,
-            current_task: ''
-        },
-        loadingAction: false,
-        pollInterval: null,
-        cronSettings: {
-            enabled: true,
-            secret_key: 'nyamimo-cron-secret-2026',
-            interval: 1,
-            mode: 'scrape_all_sources',
-            last_run: '-',
-            run_count: 0
-        },
-        backendUrl: 'https://api-mimo.neperone.id',
-        copiedCronUrl: false,
-        cronTesting: false,
-        cronSaving: false,
-        init() {
-            this.fetchLogs();
-            this.fetchCronSettings();
-            this.pollInterval = setInterval(() => {
-                if (this.activeTab === 'scraper' || this.stats.is_running) {
-                    this.fetchLogs();
-                }
-            }, 1200);
-        },
-        getCronUrl() {
-            const base = (this.backendUrl || 'https://api-mimo.neperone.id').replace(/\/+$/, '');
-            return `${base}/api/cron/scraper?key=${this.cronSettings.secret_key || 'nyamimo-cron-secret-2026'}&mode=${this.cronSettings.mode || 'scrape_all_sources'}`;
-        },
-        copyCronUrl() {
-            const url = this.getCronUrl();
-            if (navigator.clipboard && window.isSecureContext) {
-                navigator.clipboard.writeText(url).then(() => {
-                    this.copiedCronUrl = true;
-                    setTimeout(() => { this.copiedCronUrl = false; }, 2500);
-                }).catch(() => this.fallbackCopy(url));
-            } else {
-                this.fallbackCopy(url);
-            }
-        },
-        fallbackCopy(text) {
-            const textArea = document.createElement("textarea");
-            textArea.value = text;
-            textArea.style.position = "fixed";
-            textArea.style.left = "-999999px";
-            document.body.appendChild(textArea);
-            textArea.focus();
-            textArea.select();
-            try {
-                document.execCommand('copy');
-                this.copiedCronUrl = true;
-                setTimeout(() => { this.copiedCronUrl = false; }, 2500);
-            } catch (err) {}
-            document.body.removeChild(textArea);
-        },
-        fetchCronSettings() {
-            fetch('/api/admin/scraper/cron-settings')
-                .then(res => res.json())
-                .then(data => {
-                    if (data && data.success && data.settings) {
-                        this.cronSettings = data.settings;
-                    }
-                    if (window.lucide) {
-                        this.$nextTick(() => { window.lucide.createIcons(); });
-                    }
-                })
-                .catch(() => {});
-        },
-        saveCronSettings() {
-            this.cronSaving = true;
-            fetch('/api/admin/scraper/cron-settings', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(this.cronSettings)
-            })
-            .then(res => res.json())
-            .then(data => {
-                this.cronSaving = false;
-                if (data && data.success) {
-                    if (data.settings) this.cronSettings = data.settings;
-                }
-            })
-            .catch(err => {
-                this.cronSaving = false;
-                alert('Gagal menyimpan pengaturan cronjob: ' + err.message);
-            });
-        },
-        testCronTrigger() {
-            this.cronTesting = true;
-            fetch(this.getCronUrl())
-                .then(res => res.json())
-                .then(data => {
-                    this.cronTesting = false;
-                    alert(data.message || 'Trigger cronjob berhasil dikirim!');
-                    this.fetchLogs();
-                    this.fetchCronSettings();
-                })
-                .catch(err => {
-                    this.cronTesting = false;
-                    alert('Gagal memicu cronjob: ' + err.message);
-                });
-        },
-        fetchLogs() {
-            fetch('/api/admin/scraper/logs')
-                .then(res => res.json())
-                .then(data => {
-                    if (data && data.success) {
-                        this.logs = data.logs || [];
-                        this.stats = data.stats || this.stats;
-                        this.$nextTick(() => {
-                            const box = document.getElementById('scraper-terminal-box');
-                            if (box) box.scrollTop = box.scrollHeight;
-                        });
-                    }
-                })
-                .catch(() => {});
-        },
-        startScraper(mode) {
-            this.loadingAction = true;
-            this.stats.is_running = true;
-            if (mode === 'samehadaku_all') this.stats.current_task = 'Scraping Samehadaku (A - Z)...';
-            else if (mode === 'samehadaku_ongoing') this.stats.current_task = 'Scraping Samehadaku Ongoing...';
-            else if (mode === 'scrape_all_sources') this.stats.current_task = 'Scraping Semua Sumber (Otakudesu + Samehadaku)...';
-            else if (mode === 'rescrape_all') this.stats.current_task = 'Re-scraping Bersih (A - Z)...';
-            else this.stats.current_task = 'Scraping Otakudesu (A - Z)...';
-
-            fetch('/api/admin/scraper/start?mode=' + mode, { method: 'POST' })
-                .then(res => res.json())
-                .then(data => {
-                    this.loadingAction = false;
-                    this.fetchLogs();
-                })
-                .catch(err => {
-                    this.loadingAction = false;
-                    this.stats.is_running = false;
-                    alert('Gagal memulai scraper: ' + err.message);
-                });
-        },
-        stopScraper() {
-            this.loadingAction = false;
-            this.stats.is_running = false;
-            this.stats.current_task = 'Dihentikan';
-            fetch('/api/admin/scraper/stop', { method: 'POST' })
-                .then(res => res.json())
-                .then(() => {
-                    this.stats.is_running = false;
-                    this.stats.current_task = 'Dihentikan';
-                    this.fetchLogs();
-                })
-                .catch(() => {
-                    this.stats.is_running = false;
-                    this.fetchLogs();
-                });
-        }
-    }">
+    <div x-show="activeTab === 'scraper'" class="space-y-6" x-data="scraperEngine()">
         <!-- Top Status Hero Banner (Clean & Responsive) -->
         <div class="bg-white border border-[#E2E2DC] rounded-3xl p-6 sm:p-8 shadow-sm space-y-6 relative overflow-hidden">
             <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-5 border-b border-[#E2E2DC] pb-6">
@@ -3366,7 +3204,176 @@
     </div>
 
 </div>
+
 <script>
-    if (window.lucide) lucide.createIcons();
+function scraperEngine() {
+    return {
+        logs: [],
+        stats: {
+            total_anime: 0,
+            total_ongoing: 0,
+            total_completed: 0,
+            total_episodes: 0,
+            is_running: false,
+            current_task: ''
+        },
+        loadingAction: false,
+        pollInterval: null,
+        cronSettings: {
+            enabled: true,
+            secret_key: 'nyamimo-cron-secret-2026',
+            interval: 1,
+            mode: 'scrape_all_sources',
+            last_run: '-',
+            run_count: 0
+        },
+        backendUrl: 'https://api-mimo.neperone.id',
+        copiedCronUrl: false,
+        cronTesting: false,
+        cronSaving: false,
+        init() {
+            this.fetchLogs();
+            this.fetchCronSettings();
+            this.pollInterval = setInterval(() => {
+                if (this.activeTab === 'scraper' || this.stats.is_running) {
+                    this.fetchLogs();
+                }
+            }, 1200);
+        },
+        getCronUrl() {
+            const base = (this.backendUrl || 'https://api-mimo.neperone.id').replace(/\/+$/, '');
+            const key = encodeURIComponent(this.cronSettings.secret_key || 'nyamimo-cron-secret-2026');
+            const mode = encodeURIComponent(this.cronSettings.mode || 'scrape_all_sources');
+            return base + '/api/cron/scraper?key=' + key + '&mode=' + mode;
+        },
+        copyCronUrl() {
+            const url = this.getCronUrl();
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(url).then(() => {
+                    this.copiedCronUrl = true;
+                    setTimeout(() => { this.copiedCronUrl = false; }, 2500);
+                }).catch(() => this.fallbackCopy(url));
+            } else {
+                this.fallbackCopy(url);
+            }
+        },
+        fallbackCopy(text) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                this.copiedCronUrl = true;
+                setTimeout(() => { this.copiedCronUrl = false; }, 2500);
+            } catch (err) {}
+            document.body.removeChild(textArea);
+        },
+        fetchCronSettings() {
+            fetch('/api/admin/scraper/cron-settings')
+                .then(res => res.json())
+                .then(data => {
+                    if (data && data.success && data.settings) {
+                        this.cronSettings = data.settings;
+                    }
+                    if (window.lucide) {
+                        this.$nextTick(() => { window.lucide.createIcons(); });
+                    }
+                })
+                .catch(() => {});
+        },
+        saveCronSettings() {
+            this.cronSaving = true;
+            fetch('/api/admin/scraper/cron-settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(this.cronSettings)
+            })
+            .then(res => res.json())
+            .then(data => {
+                this.cronSaving = false;
+                if (data && data.success) {
+                    if (data.settings) this.cronSettings = data.settings;
+                }
+            })
+            .catch(err => {
+                this.cronSaving = false;
+                alert('Gagal menyimpan pengaturan cronjob: ' + err.message);
+            });
+        },
+        testCronTrigger() {
+            this.cronTesting = true;
+            fetch(this.getCronUrl())
+                .then(res => res.json())
+                .then(data => {
+                    this.cronTesting = false;
+                    alert(data.message || 'Trigger cronjob berhasil dikirim!');
+                    this.fetchLogs();
+                    this.fetchCronSettings();
+                })
+                .catch(err => {
+                    this.cronTesting = false;
+                    alert('Gagal memicu cronjob: ' + err.message);
+                });
+        },
+        fetchLogs() {
+            fetch('/api/admin/scraper/logs')
+                .then(res => res.json())
+                .then(data => {
+                    if (data && data.success) {
+                        this.logs = data.logs || [];
+                        this.stats = data.stats || this.stats;
+                        this.$nextTick(() => {
+                            const box = document.getElementById('scraper-terminal-box');
+                            if (box) box.scrollTop = box.scrollHeight;
+                        });
+                    }
+                })
+                .catch(() => {});
+        },
+        startScraper(mode) {
+            this.loadingAction = true;
+            this.stats.is_running = true;
+            if (mode === 'samehadaku_all') this.stats.current_task = 'Scraping Samehadaku (A - Z)...';
+            else if (mode === 'samehadaku_ongoing') this.stats.current_task = 'Scraping Samehadaku Ongoing...';
+            else if (mode === 'scrape_all_sources') this.stats.current_task = 'Scraping Semua Sumber (Otakudesu + Samehadaku)...';
+            else if (mode === 'rescrape_all') this.stats.current_task = 'Re-scraping Bersih (A - Z)...';
+            else this.stats.current_task = 'Scraping Otakudesu (A - Z)...';
+
+            fetch('/api/admin/scraper/start?mode=' + mode, { method: 'POST' })
+                .then(res => res.json())
+                .then(data => {
+                    this.loadingAction = false;
+                    this.fetchLogs();
+                })
+                .catch(err => {
+                    this.loadingAction = false;
+                    this.stats.is_running = false;
+                    alert('Gagal memulai scraper: ' + err.message);
+                });
+        },
+        stopScraper() {
+            this.loadingAction = false;
+            this.stats.is_running = false;
+            this.stats.current_task = 'Dihentikan';
+            fetch('/api/admin/scraper/stop', { method: 'POST' })
+                .then(res => res.json())
+                .then(() => {
+                    this.stats.is_running = false;
+                    this.stats.current_task = 'Dihentikan';
+                    this.fetchLogs();
+                })
+                .catch(() => {
+                    this.stats.is_running = false;
+                    this.fetchLogs();
+                });
+        }
+    };
+}
+if (window.lucide) lucide.createIcons();
 </script>
+
 {{end}}
