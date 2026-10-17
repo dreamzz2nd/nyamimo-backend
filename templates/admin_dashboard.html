@@ -2662,13 +2662,103 @@
         },
         loadingAction: false,
         pollInterval: null,
+        cronSettings: {
+            enabled: true,
+            secret_key: 'nyamimo-cron-secret-2026',
+            interval: 1,
+            mode: 'scrape_all_sources',
+            last_run: '-',
+            run_count: 0
+        },
+        backendUrl: 'https://api-mimo.neperone.id',
+        copiedCronUrl: false,
+        cronTesting: false,
+        cronSaving: false,
         init() {
             this.fetchLogs();
+            this.fetchCronSettings();
             this.pollInterval = setInterval(() => {
                 if (this.activeTab === 'scraper' || this.stats.is_running) {
                     this.fetchLogs();
                 }
             }, 1200);
+        },
+        getCronUrl() {
+            const base = (this.backendUrl || 'https://api-mimo.neperone.id').replace(/\/+$/, '');
+            return `${base}/api/cron/scraper?key=${this.cronSettings.secret_key || 'nyamimo-cron-secret-2026'}&mode=${this.cronSettings.mode || 'scrape_all_sources'}`;
+        },
+        copyCronUrl() {
+            const url = this.getCronUrl();
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(url).then(() => {
+                    this.copiedCronUrl = true;
+                    setTimeout(() => { this.copiedCronUrl = false; }, 2500);
+                }).catch(() => this.fallbackCopy(url));
+            } else {
+                this.fallbackCopy(url);
+            }
+        },
+        fallbackCopy(text) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed";
+            textArea.style.left = "-999999px";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                this.copiedCronUrl = true;
+                setTimeout(() => { this.copiedCronUrl = false; }, 2500);
+            } catch (err) {}
+            document.body.removeChild(textArea);
+        },
+        fetchCronSettings() {
+            fetch('/api/admin/scraper/cron-settings')
+                .then(res => res.json())
+                .then(data => {
+                    if (data && data.success && data.settings) {
+                        this.cronSettings = data.settings;
+                    }
+                    if (window.lucide) {
+                        this.$nextTick(() => { window.lucide.createIcons(); });
+                    }
+                })
+                .catch(() => {});
+        },
+        saveCronSettings() {
+            this.cronSaving = true;
+            fetch('/api/admin/scraper/cron-settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(this.cronSettings)
+            })
+            .then(res => res.json())
+            .then(data => {
+                this.cronSaving = false;
+                if (data && data.success) {
+                    if (data.settings) this.cronSettings = data.settings;
+                }
+            })
+            .catch(err => {
+                this.cronSaving = false;
+                alert('Gagal menyimpan pengaturan cronjob: ' + err.message);
+            });
+        },
+        testCronTrigger() {
+            this.cronTesting = true;
+            fetch(this.getCronUrl())
+                .then(res => res.json())
+                .then(data => {
+                    this.cronTesting = false;
+                    alert(data.message || 'Trigger cronjob berhasil dikirim!');
+                    this.fetchLogs();
+                    this.fetchCronSettings();
+                })
+                .catch(err => {
+                    this.cronTesting = false;
+                    alert('Gagal memicu cronjob: ' + err.message);
+                });
         },
         fetchLogs() {
             fetch('/api/admin/scraper/logs')
@@ -2822,6 +2912,140 @@
             </div>
         </div>
 
+        <!-- PENGATURAN CRONJOB OTOMATIS (24 JAM / 1x PER JAM) -->
+        <div class="bg-white border border-[#E2E2DC] rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-[#E2E2DC] pb-5">
+                <div class="space-y-1.5">
+                    <div class="flex items-center gap-2">
+                        <span class="px-2.5 py-0.5 rounded-md bg-[#17171B] text-[#FFCC00] font-mono text-[10px] font-extrabold uppercase tracking-wider">
+                            CRONJOB SCHEDULER (24 JAM)
+                        </span>
+                        <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold"
+                            :class="cronSettings.enabled ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'">
+                            <span x-text="cronSettings.enabled ? '● Cronjob Aktif' : '○ Cronjob Nonaktif'"></span>
+                        </span>
+                    </div>
+                    <h3 class="text-xl sm:text-2xl font-extrabold font-title tracking-tight text-[#1A1A1E] flex items-center gap-2">
+                        <i data-lucide="clock" class="w-6 h-6 text-[#FFCC00]"></i>
+                        <span>Otomasi Scrapping Per Jam (24x Sehari)</span>
+                    </h3>
+                    <p class="text-xs sm:text-sm text-[#55555B] max-w-2xl leading-relaxed">
+                        Server Nyamimo siap dieksekusi setiap 1 jam otomatis untuk memperbarui anime ongoing dan katalog dari semua sumber (Otakudesu + Samehadaku). Hubungkan URL Webhook di bawah ke <strong class="text-[#1A1A1E]">cron-job.org</strong> agar server Render tidak pernah sleep (tetap on 24 jam)!
+                    </p>
+                </div>
+
+                <!-- Action Button Save & Toggle -->
+                <div class="flex items-center gap-3 shrink-0">
+                    <button type="button" @click="cronSettings.enabled = !cronSettings.enabled; saveCronSettings()"
+                        :class="cronSettings.enabled ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'bg-[#E2E2DC] hover:bg-[#d5d5cd] text-[#55555B]'"
+                        class="px-4 py-2.5 rounded-xl font-title font-bold text-xs transition-all flex items-center gap-2 shadow-2xs cursor-pointer active:scale-95">
+                        <i data-lucide="power" class="w-4 h-4"></i>
+                        <span x-text="cronSettings.enabled ? 'Scheduler Aktif' : 'Scheduler Mati'"></span>
+                    </button>
+                    <button type="button" @click="testCronTrigger()" :disabled="cronTesting || stats.is_running"
+                        class="px-4 py-2.5 rounded-xl bg-[#17171B] hover:bg-[#26262e] text-[#FFCC00] font-title font-bold text-xs transition-all flex items-center gap-2 shadow-sm cursor-pointer disabled:opacity-50 active:scale-95">
+                        <i data-lucide="play" class="w-4 h-4" :class="{'animate-spin': cronTesting}"></i>
+                        <span x-text="cronTesting ? 'Memicu...' : 'Tes Pemicu Sekarang'"></span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Webhook URL Display (Optimized for cron-job.org) -->
+            <div class="bg-[#F6F5F0] border border-[#E2E2DC] rounded-2xl p-4 sm:p-5 space-y-3">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div class="text-[11px] font-bold text-[#71717A] uppercase tracking-wider font-title flex items-center gap-1.5">
+                        <i data-lucide="link" class="w-3.5 h-3.5 text-[#FFCC00]"></i>
+                        <span>URL Webhook Backend API (Masukkan ke cron-job.org)</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-[#17171B] text-[#FFCC00]">Target Server: api-mimo.neperone.id</span>
+                        <span class="text-[10px] text-[#A0A0A8] font-mono">Metode: GET</span>
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                    <div class="relative flex-1">
+                        <input type="text" readonly :value="getCronUrl()"
+                            class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#E2E2DC] text-xs font-mono text-[#1A1A1E] font-semibold focus:outline-none focus:border-[#FFCC00] shadow-inner select-all" />
+                    </div>
+                    <button type="button" @click="copyCronUrl()"
+                        :class="copiedCronUrl ? 'bg-emerald-600 text-white' : 'bg-[#17171B] hover:bg-[#26262e] text-[#FFCC00]'"
+                        class="px-4 py-2.5 rounded-xl font-title font-bold text-xs transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer shrink-0 active:scale-95">
+                        <i :data-lucide="copiedCronUrl ? 'check' : 'copy'" class="w-4 h-4"></i>
+                        <span x-text="copiedCronUrl ? 'URL Tersalin!' : 'Salin URL Backend'"></span>
+                    </button>
+                </div>
+
+                <!-- Info Helper & Steps for cron-job.org -->
+                <div class="pt-2 grid grid-cols-1 md:grid-cols-3 gap-3 text-xs text-[#55555B]">
+                    <div class="p-3 bg-white rounded-xl border border-[#E2E2DC]/80 space-y-1">
+                        <div class="font-bold font-title text-[#1A1A1E] flex items-center gap-1.5">
+                            <span class="w-5 h-5 rounded-full bg-[#FFCC00] text-[#17171B] text-[10px] font-extrabold flex items-center justify-center">1</span>
+                            Buka cron-job.org Console
+                        </div>
+                        <p class="text-[11px] text-[#71717A] leading-relaxed">Klik tombol <strong>"CREATE CRONJOB"</strong> di tab cron-job.org yang sudah Anda buka.</p>
+                    </div>
+
+                    <div class="p-3 bg-white rounded-xl border border-[#E2E2DC]/80 space-y-1">
+                        <div class="font-bold font-title text-[#1A1A1E] flex items-center gap-1.5">
+                            <span class="w-5 h-5 rounded-full bg-[#FFCC00] text-[#17171B] text-[10px] font-extrabold flex items-center justify-center">2</span>
+                            Paste URL Backend
+                        </div>
+                        <p class="text-[11px] text-[#71717A] leading-relaxed">Paste URL di atas ke kolom <strong>URL</strong> (mengarah ke <code>https://api-mimo.neperone.id</code>), dan pilih <strong>"Every 1 hour"</strong>.</p>
+                    </div>
+
+                    <div class="p-3 bg-white rounded-xl border border-[#E2E2DC]/80 space-y-1">
+                        <div class="font-bold font-title text-[#1A1A1E] flex items-center gap-1.5">
+                            <span class="w-5 h-5 rounded-full bg-[#FFCC00] text-[#17171B] text-[10px] font-extrabold flex items-center justify-center">3</span>
+                            Simpan & Beres!
+                        </div>
+                        <p class="text-[11px] text-[#71717A] leading-relaxed">Klik Simpan. Backend API Nyamimo akan mengeksekusi bot scraper secara otomatis 24 jam sehari!</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detailed Cron Settings (Mode & Secret Key) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-1">
+                <div class="space-y-1.5">
+                    <label class="text-[11px] font-bold text-[#71717A] uppercase tracking-wider font-title">Mode Auto-Scraping</label>
+                    <select x-model="cronSettings.mode" @change="saveCronSettings()"
+                        class="w-full px-3 py-2 rounded-xl bg-[#F6F5F0] border border-[#E2E2DC] text-xs font-semibold text-[#1A1A1E] focus:outline-none focus:border-[#FFCC00]">
+                        <option value="scrape_all_sources">🌟 Semua Sumber (Otaku + Samehadaku)</option>
+                        <option value="samehadaku_ongoing">⚡ Hanya Samehadaku Ongoing</option>
+                        <option value="ongoing">🔥 Anime Ongoing (Otaku + Same)</option>
+                        <option value="samehadaku_all">📖 Samehadaku A-Z</option>
+                        <option value="all">🌐 Otakudesu A-Z</option>
+                    </select>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="text-[11px] font-bold text-[#71717A] uppercase tracking-wider font-title">Secret Key Token</label>
+                    <div class="flex items-center gap-1.5">
+                        <input type="text" x-model="cronSettings.secret_key"
+                            class="w-full px-3 py-2 rounded-xl bg-[#F6F5F0] border border-[#E2E2DC] text-xs font-mono text-[#1A1A1E] focus:outline-none focus:border-[#FFCC00]" />
+                        <button type="button" @click="saveCronSettings()"
+                            class="px-2.5 py-2 rounded-xl bg-[#17171B] text-[#FFCC00] font-bold text-xs hover:bg-[#26262e] shrink-0" title="Simpan Key">
+                            <i data-lucide="check" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="text-[11px] font-bold text-[#71717A] uppercase tracking-wider font-title">Terakhir Dijalankan</label>
+                    <div class="px-3 py-2 rounded-xl bg-[#F6F5F0] border border-[#E2E2DC] text-xs font-mono text-[#1A1A1E] truncate"
+                        x-text="cronSettings.last_run || '-'"></div>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="text-[11px] font-bold text-[#71717A] uppercase tracking-wider font-title">Total Eksekusi Cron</label>
+                    <div class="px-3 py-2 rounded-xl bg-[#F6F5F0] border border-[#E2E2DC] text-xs font-bold text-emerald-600 flex items-center justify-between">
+                        <span x-text="(cronSettings.run_count || 0) + ' Kali Berjalan'"></span>
+                        <span class="text-[10px] text-[#A0A0A8] font-normal">24x / Hari</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- LIVE TERMINAL CONSOLE -->
         <div class="bg-[#0E0E12] border border-[#272730] rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4 text-white">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
@@ -2870,8 +3094,8 @@
             </div>
             
             <div class="flex items-center justify-between text-[10px] font-mono text-gray-500 pt-1">
-                <span>Auto-refresh: 1.2s • Dedicated Go routine scraper</span>
-                <span>Storage Target: data/anime_database.json</span>
+                <span>Auto-refresh: 1.2s • Remote Bot Scraper Engine</span>
+                <span>Target Backend: api-mimo.neperone.id (Central DB)</span>
             </div>
         </div>
     </div>

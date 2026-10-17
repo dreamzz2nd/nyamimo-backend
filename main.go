@@ -283,6 +283,15 @@ type BloggerPlayerSettings struct {
 	FullscreenOffsetPx int  `json:"fullscreen_offset_px"`
 }
 
+type CronScraperSettings struct {
+	Enabled   bool   `json:"enabled"`
+	SecretKey string `json:"secret_key"`
+	Interval  int    `json:"interval"` // in hours (default 1)
+	Mode      string `json:"mode"`     // default "scrape_all_sources"
+	LastRun   string `json:"last_run"`
+	RunCount  int    `json:"run_count"`
+}
+
 type AppConfig struct {
 	SiteName           string                `json:"site_name"`
 	SiteTagline        string                `json:"site_tagline"`
@@ -299,6 +308,7 @@ type AppConfig struct {
 	Watermark          WatermarkSettings     `json:"watermark"`
 	App                AppSettings           `json:"app"`
 	BloggerPlayer      BloggerPlayerSettings `json:"blogger_player"`
+	CronScraper        CronScraperSettings   `json:"cron_scraper"`
 }
 
 type AdminDashboardData struct {
@@ -987,6 +997,14 @@ func getDefaultConfig() AppConfig {
 			BottomOffsetPx:     45,
 			FullscreenOffsetPx: 60,
 		},
+		CronScraper: CronScraperSettings{
+			Enabled:   true,
+			SecretKey: "nyamimo-cron-secret-2026",
+			Interval:  1,
+			Mode:      "scrape_all_sources",
+			LastRun:   "-",
+			RunCount:  0,
+		},
 	}
 }
 
@@ -1022,6 +1040,19 @@ func loadAppConfig() {
 	}
 	if envGoogleSec := os.Getenv("GOOGLE_CLIENT_SECRET"); envGoogleSec != "" {
 		appConfig.GoogleClientSecret = envGoogleSec
+	}
+	if envCronKey := os.Getenv("CRON_SECRET"); envCronKey != "" {
+		appConfig.CronScraper.SecretKey = envCronKey
+	}
+
+	if appConfig.CronScraper.SecretKey == "" {
+		appConfig.CronScraper.SecretKey = "nyamimo-cron-secret-2026"
+	}
+	if appConfig.CronScraper.Interval <= 0 {
+		appConfig.CronScraper.Interval = 1
+	}
+	if appConfig.CronScraper.Mode == "" {
+		appConfig.CronScraper.Mode = "scrape_all_sources"
 	}
 
 	if appConfig.APIProvider == "" {
@@ -1223,6 +1254,9 @@ func main() {
 	mux.HandleFunc("/api/admin/scraper/start", handleAdminScraperStart)
 	mux.HandleFunc("/api/admin/scraper/stop", handleAdminScraperStop)
 	mux.HandleFunc("/api/admin/scraper/logs", handleAdminScraperLogs)
+	mux.HandleFunc("/api/admin/scraper/cron-settings", handleAdminScraperCronSettings)
+	mux.HandleFunc("/api/cron/scraper", handlePublicCronScraper)
+	mux.HandleFunc("/api/cron/scrape", handlePublicCronScraper)
 
 	// HTMX Partial API Endpoints
 	mux.HandleFunc("/api/section/genre", handleSectionGenre)
@@ -1256,6 +1290,9 @@ func main() {
 
 	// Gzip Compression & CORS Wrapper
 	serverHandler := corsMiddleware(gzipMiddleware(mux))
+
+	// Jalankan internal background scheduler (1x tiap jam)
+	startInternalScraperCron()
 
 	fmt.Printf("🚀 Nyamimo REST API Server running on http://localhost:%s\n", port)
 	log.Fatal(http.ListenAndServe(":"+port, serverHandler))
@@ -3640,6 +3677,174 @@ func handleAdminScraperLogs(w http.ResponseWriter, r *http.Request) {
 		"logs":    logs,
 		"stats":   stats,
 	})
+}
+
+func handleAdminScraperCronSettings(w http.ResponseWriter, r *http.Request) {
+	currentUser := getLoggedInUser(r)
+	if currentUser == nil || currentUser.Role != "admin" {
+		http.Error(w, `{"success":false,"message":"Unauthorized"}`, http.StatusUnauthorized)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+
+	if r.Method == http.MethodPost {
+		var req struct {
+			Enabled   *bool  `json:"enabled"`
+			SecretKey string `json:"secret_key"`
+			Interval  int    `json:"interval"`
+			Mode      string `json:"mode"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			http.Error(w, `{"success":false,"message":"Format data tidak valid"}`, http.StatusBadRequest)
+			return
+		}
+
+		appConfigLock.Lock()
+		if req.Enabled != nil {
+			appConfig.CronScraper.Enabled = *req.Enabled
+		}
+		if req.SecretKey != "" {
+			appConfig.CronScraper.SecretKey = strings.TrimSpace(req.SecretKey)
+		}
+		if req.Interval > 0 {
+			appConfig.CronScraper.Interval = req.Interval
+		}
+		if req.Mode != "" {
+			appConfig.CronScraper.Mode = strings.TrimSpace(req.Mode)
+		}
+		_ = saveAppConfigUnsafe()
+		savedSettings := appConfig.CronScraper
+		appConfigLock.Unlock()
+
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
+			"success":  true,
+			"message":  "Pengaturan cronjob scraper berhasil disimpan",
+			"settings": savedSettings,
+		})
+		return
+	}
+
+	cfg := getAppConfig()
+	_ = json.NewEncoder(w).Encode(map[string]interface{}{
+		"success":  true,
+		"settings": cfg.CronScraper,
+	})
+}
+
+func handlePublicCronScraper(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	cfg := getAppConfig()
+	key := r.URL.Query().Get("key")
+	if key == "" {
+		key = r.Header.Get("X-Cron-Key")
+	}
+	if key == "" && strings.HasPrefix(r.Header.Get("Authorization"), "Bearer ") {
+		key = strings.TrimSpace(strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer "))
+	}
+
+	expectedKey := cfg.CronScraper.SecretKey
+	if expectedKey == "" {
+		expectedKey = "nyamimo-cron-secret-2026"
+	}
+
+	if key == "" || key != expectedKey {
+		w.WriteHeader(http.StatusUnauthorized)
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
+			"success": false,
+			"message": "Akses ditolak: Cron Secret Key tidak valid atau belum disertakan.",
+		})
+		return
+	}
+
+	store := scraper.GetStore()
+	stats := store.GetStats()
+	isRunning := stats.IsRunning
+	currentTask := stats.CurrentTask
+
+	if isRunning {
+		// Return 200 OK so cron-job.org does not count this as an error
+		w.WriteHeader(http.StatusOK)
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
+			"success": true,
+			"status":  "already_running",
+			"message": "Bot scraper sedang berjalan memproses tugas lain.",
+			"task":    currentTask,
+		})
+		return
+	}
+
+	mode := r.URL.Query().Get("mode")
+	if mode == "" {
+		mode = cfg.CronScraper.Mode
+	}
+	if mode == "" {
+		mode = "scrape_all_sources"
+	}
+
+	store.AddLog("INFO", fmt.Sprintf("⏰ [CRONJOB] Pemicu Webhook Cronjob diterima! Menjalankan auto-scraping mode: [%s]...", mode))
+
+	engine := scraper.NewScraperEngine()
+	if err := engine.StartJob(mode); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
+			"success": false,
+			"message": err.Error(),
+		})
+		return
+	}
+
+	appConfigLock.Lock()
+	appConfig.CronScraper.LastRun = time.Now().Format("2006-01-02 15:04:05")
+	appConfig.CronScraper.RunCount++
+	_ = saveAppConfigUnsafe()
+	appConfigLock.Unlock()
+
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(map[string]interface{}{
+		"success":   true,
+		"status":    "started",
+		"mode":      mode,
+		"run_count": cfg.CronScraper.RunCount + 1,
+		"timestamp": time.Now().Format("2006-01-02 15:04:05"),
+		"message":   "Scraper berhasil dijalankan via Cronjob!",
+	})
+}
+
+func startInternalScraperCron() {
+	go func() {
+		ticker := time.NewTicker(1 * time.Hour)
+		defer ticker.Stop()
+		for range ticker.C {
+			cfg := getAppConfig()
+			if !cfg.CronScraper.Enabled {
+				continue
+			}
+
+			store := scraper.GetStore()
+			stats := store.GetStats()
+			if stats.IsRunning {
+				store.AddLog("WARN", "⏰ [INTERNAL CRON] Jadwal 1 jam tercapai, namun bot scraper masih sibuk. Melewati giliran ini.")
+				continue
+			}
+
+			mode := cfg.CronScraper.Mode
+			if mode == "" {
+				mode = "scrape_all_sources"
+			}
+
+			store.AddLog("INFO", fmt.Sprintf("⏰ [INTERNAL CRON] Jadwal otomatis 1 jam berjalan! Mengikis: [%s]...", mode))
+			engine := scraper.NewScraperEngine()
+			if err := engine.StartJob(mode); err == nil {
+				appConfigLock.Lock()
+				appConfig.CronScraper.LastRun = time.Now().Format("2006-01-02 15:04:05")
+				appConfig.CronScraper.RunCount++
+				_ = saveAppConfigUnsafe()
+				appConfigLock.Unlock()
+			}
+		}
+	}()
 }
 
 // User & Guest Error Reporting API
